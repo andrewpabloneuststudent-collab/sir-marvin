@@ -133,7 +133,7 @@ class UserManagement
         }
         $stmt = $this->con->prepare('SELECT u.*, ui.* FROM users u LEFT JOIN users_info ui ON u.id = ui.user_id');
         $stmt->execute();
-        return $stmt->fetchAll();
+        return $stmt->fetchAll(); // control this data so the system isnt overloaded with data, maybe add pagination in the future
     }
 
     public function getUserById($id)
