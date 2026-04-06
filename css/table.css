@@ -1,0 +1,8 @@
+@media (max-width: 768px) {
+    .table th:nth-child(2),
+    .table th:nth-child(5),
+    .table td:nth-child(2),
+    .table td:nth-child(5) {
+        display: none; /* Hide Position and Contact on mobile */
+    }
+}

@@ -1,0 +1,16 @@
+creating hash account to owner account manually
+<?php
+$conn = new mysqli("localhost", "root", "", "mmbpos");
+
+$username = "andrew";
+$password = "newgun45";
+$position = "owner";
+
+$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+$stmt = $conn->prepare("INSERT INTO users (username, password, position) VALUES (?, ?, ?)");
+$stmt->bind_param("sss", $username, $hashedPassword, $position);
+$stmt->execute();
+
+echo $hashedPassword; // 👈 SHOW HASH
+?>
