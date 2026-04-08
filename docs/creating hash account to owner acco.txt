@@ -13,4 +13,4 @@ $stmt->bind_param("sss", $username, $hashedPassword, $position);
 $stmt->execute();
 
 echo $hashedPassword; // 👈 SHOW HASH
-?>
+?>  

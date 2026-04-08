@@ -43,23 +43,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     <?php endif; ?>
-                    <form method="POST" action="">
+                    <form method="POST" action="" id="loginForm">
                         <div class="form-floating mb-3">
-                            <input type="text" name="username" class="form-control" id="floatingInput" placeholder="Username" required>
-                            <label for="floatingInput">Username</label>
+                            <input type="text" name="username" class="form-control" id="username" required autocomplete="off" value="">
+                            <label for="username">Username</label>
                         </div>
                         <div class="form-floating">
-                            <input type="password" id="password" name="password" class="form-control" placeholder="Password">
+                            <input type="password" id="password" name="password" class="form-control" autocomplete="off" value="">
                             <label for="password">Password</label>
                         </div>
                         <button type="submit" name="login" class="btn btn-primary w-100 mt-3">Login</button>
-                        
                     </form>
                 </div>
             </div>
         </div>
     </div>
-<script src="../js/alert.js"></script>
+    
+    <script>
+        // Force clear fields on page load to fight browser autofill
+        window.onload = function() {
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        };
+    </script>
 </body>
 
 </html>

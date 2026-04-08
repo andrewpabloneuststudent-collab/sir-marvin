@@ -3,7 +3,7 @@ session_start();
 
 // 🔐 CHECK IF LOGGED IN
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /MMBPOS/login.php");
+    header("Location: /" . basename(dirname(__DIR__)) . "/index.php");
     exit;
 }
 
