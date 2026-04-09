@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . "/../conn/connection_links.php";
+require_once __DIR__ . "/../conn/database.php";
 require_once __DIR__ . "/../function/loginfunction.php";
 
 use Classes\Project;
@@ -8,6 +8,7 @@ global $db;
 
 $error_message = '';
 
+// PROCESS LOGIN BEFORE ANY HTML OUTPUT
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     $username = $_POST['username'];
     $password = $_POST['password'];
@@ -19,6 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
         $error_message = "Database connection error";
     }
 }
+
+// NOW OUTPUT HTML AFTER LOGIN PROCESSING
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -26,7 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title> 
+    <title>Login</title>
+    <?php require_once __DIR__ . "/../conn/connection_links.php"; ?>
 </head>
 
 <body>

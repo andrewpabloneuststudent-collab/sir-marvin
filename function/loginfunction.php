@@ -68,23 +68,26 @@ class Project
                 $resetIP->execute([$ip]);
 
                 // 🔐 SESSION
-                session_start();
                 session_regenerate_id(true);
 
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['position'] = $user['position'];
 
-                // 🔁 REDIRECT BASED ON ROLE
-                if ($user['position'] === 'owner') {
+                // 🔁 REDIRECT BASED ON ROLE (case-insensitive)
+                $position = strtolower($user['position']);
+                if ($position === 'owner') {
                     header('Location: /MMBPOS/ownerpage/dashboard.php');
                     exit;
-                } elseif ($user['position'] === 'admin') {
+                } elseif ($position === 'admin') {
                     header('Location: /MMBPOS/adminpage/dashboard.php');
                     exit;
-                } elseif ($user['position'] === 'staff') {
+                } elseif ($position === 'staff') {
                     header('Location: /MMBPOS/staffpos/dashboard.php');
                     exit;
+                } else {
+                    // Fallback if position doesn't match any role
+                    return "Invalid user position: " . htmlspecialchars($user['position']);
                 }
             }
             // =========================

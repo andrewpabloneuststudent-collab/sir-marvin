@@ -4,6 +4,21 @@ require_once "../conn/database.php";
 require_once "../function/usermanagement.php";
 
 $usersmanagement = new UserManagement($db);
+
+// Handle AJAX delete request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteUser'])) {
+    header('Content-Type: application/json');
+    
+    $userId = intval($_POST['deleteUser']);
+    
+    if ($usersmanagement->deleteUser($userId)) {
+        echo json_encode(['success' => true, 'message' => 'User deleted successfully']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to delete user']);
+    }
+    exit;
+}
+
 $users = $usersmanagement->getAllUsers();
 ?>
 <!DOCTYPE html>
@@ -59,8 +74,9 @@ $users = $usersmanagement->getAllUsers();
                                         <button class="btn btn-warning btn-sm edit-btn" data-user='<?= json_encode($member) ?>'>
                                             Edit
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-danger"
-                                            onclick="return confirm('Are you sure you want to delete this member?');">
+                                        <button type="button" class="btn btn-sm btn-danger delete-btn"
+                                            data-userid="<?php echo $member['id']; ?>"
+                                            data-username="<?php echo $member['firstname'] . ' ' . $member['lastname']; ?>">
                                             <i class="fas fa-trash"></i> Delete
                                         </button>
                                     </td>
