@@ -27,7 +27,6 @@ $users = $usersmanagement->getAllUsers();
             </div>
 
             <div class="card-body">
-
                 <div class="table-responsive">
                     <table id="usersTable" class="table table-striped table-hover">
                     <thead class="table-dark">
@@ -59,9 +58,9 @@ $users = $usersmanagement->getAllUsers();
                                     <?php echo $member['contactnumber']; ?>
                                 </td>
                                 <td>
-                                    <a href="../reusablepage/viewaccount.php?id=<?php echo $member['userId']; ?>"
+                                    <a href="../reusablepage/viewaccount.php<?php echo $member['id']; ?>"
                                         class="btn btn-sm btn-info">View</a>
-                                    <a href="../reusablepage/editaccount.php?id=<?php echo $member['userId']; ?>"
+                                    <a href="../reusablepage/editaccount.php<?php echo $member['id']; ?>"
                                         class="btn btn-sm btn-warning">Edit</a>
                                     <button type="button" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this member?');">Delete</button>
                                 </td>
