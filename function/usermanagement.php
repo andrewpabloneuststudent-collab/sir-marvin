@@ -126,6 +126,177 @@ class UserManagement
         return false;
     }
 
+    /**
+     * Create a new user account with validation
+     * Reusable method that can be called from any form
+     * 
+     * @param array $data POST data with username, password, firstname, lastname, email, position, etc.
+     * @return array ['success' => bool, 'message' => string]
+     */
+    public function createUserAccount($data)
+    {
+        $response = ['success' => false, 'message' => ''];
+        
+        try {
+            // Validate required fields
+            $username = $data['username'] ?? '';
+            $password = $data['password'] ?? '';
+            $firstname = $data['firstname'] ?? '';
+            $lastname = $data['lastname'] ?? '';
+            
+            if (empty($username) || empty($password) || empty($firstname) || empty($lastname)) {
+                $response['message'] = 'Username, Password, First Name, and Last Name are required';
+                return $response;
+            }
+            
+            // Check if username already exists
+            $stmt = $this->con->prepare("SELECT id FROM users WHERE username = ?");
+            $stmt->execute([$username]);
+            if ($stmt->fetch()) {
+                $response['message'] = 'Username already exists';
+                return $response;
+            }
+            
+            // Hash password
+            $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+            $position = $data['position'] ?? 'Staff';
+            
+            // Insert into users table first
+            $stmt = $this->con->prepare("INSERT INTO users (username, password, position, failed_attempts) VALUES (?, ?, ?, 0)");
+            $insert1 = $stmt->execute([$username, $hashedPassword, $position]);
+            
+            if (!$insert1) {
+                $response['message'] = 'Failed to create user account';
+                return $response;
+            }
+            
+            $userId = $this->con->lastInsertId();
+            
+            // Collect users_info fields
+            $middlename = $data['middlename'] ?? '';
+            $age = intval($data['age'] ?? 0);
+            $email = $data['email'] ?? '';
+            $contactnumber = $data['contactnumber'] ?? '';
+            $street = $data['street'] ?? '';
+            $barangay = $data['barangay'] ?? '';
+            $city = $data['city'] ?? '';
+            $province = $data['province'] ?? '';
+            $country = $data['country'] ?? '';
+            
+            // Insert into users_info table
+            $stmt = $this->con->prepare("INSERT INTO users_info (user_id, firstname, middlename, lastname, age, email, contactnumber, street, barangay, city, province, country) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            
+            $insert2 = $stmt->execute([
+                $userId,
+                $firstname,
+                $middlename,
+                $lastname,
+                $age,
+                $email,
+                $contactnumber,
+                $street,
+                $barangay,
+                $city,
+                $province,
+                $country
+            ]);
+            
+            if ($insert2) {
+                $response['success'] = true;
+                $response['message'] = 'Account created successfully';
+            } else {
+                $response['message'] = 'Account created but could not save details';
+            }
+            
+        } catch (Exception $e) {
+            $response['message'] = 'Database Error: ' . $e->getMessage();
+        }
+        
+        return $response;
+    }
+
+    /**
+     * Update an existing user account
+     * Reusable method that can be called from any form
+     * 
+     * @param int $userId User ID to update
+     * @param array $data POST data with firstname, lastname, email, position, etc.
+     * @return array ['success' => bool, 'message' => string]
+     */
+    public function updateUserAccount($userId, $data)
+    {
+        $response = ['success' => false, 'message' => ''];
+        
+        try {
+            // Validate user ID
+            if (empty($userId)) {
+                $response['message'] = 'User ID is required';
+                return $response;
+            }
+            
+            // Validate required fields
+            $firstname = $data['firstname'] ?? '';
+            $lastname = $data['lastname'] ?? '';
+            $email = $data['email'] ?? '';
+            
+            if (empty($firstname) || empty($lastname) || empty($email)) {
+                $response['message'] = 'First Name, Last Name, and Email are required';
+                return $response;
+            }
+            
+            // Collect all fields
+            $middlename = $data['middlename'] ?? '';
+            $age = intval($data['age'] ?? 0);
+            $position = $data['position'] ?? 'Staff';
+            $contactnumber = $data['contactnumber'] ?? '';
+            $street = $data['street'] ?? '';
+            $barangay = $data['barangay'] ?? '';
+            $city = $data['city'] ?? '';
+            $province = $data['province'] ?? '';
+            $country = $data['country'] ?? '';
+            
+            // Update users table
+            $stmt = $this->con->prepare("UPDATE users SET position = ? WHERE id = ?");
+            $update1 = $stmt->execute([$position, $userId]);
+            
+            if (!$update1) {
+                $response['message'] = 'Failed to update user account';
+                return $response;
+            }
+            
+            // Update users_info table
+            $stmt = $this->con->prepare("UPDATE users_info SET firstname = ?, middlename = ?, lastname = ?, age = ?, email = ?, contactnumber = ?, street = ?, barangay = ?, city = ?, province = ?, country = ? WHERE user_id = ?");
+            
+            $update2 = $stmt->execute([
+                $firstname,
+                $middlename,
+                $lastname,
+                $age,
+                $email,
+                $contactnumber,
+                $street,
+                $barangay,
+                $city,
+                $province,
+                $country,
+                $userId
+            ]);
+            
+            if ($update2) {
+                $response['success'] = true;
+                $response['message'] = 'Account updated successfully';
+            } else {
+                $response['message'] = 'Failed to update user details';
+            }
+            
+        } catch (Exception $e) {
+            $response['message'] = 'Database Error: ' . $e->getMessage();
+        }
+        
+        return $response;
+    }
+
     public function getAllUsers()
     {
         if (!$this->con) {
@@ -148,6 +319,11 @@ class UserManagement
 
     public function updateUser($userId)
     {
+        if (!$userId) {
+            $this->response = "Invalid user ID";
+            return false;
+        }
+
         $this->getPost();
 
         // Update users table
@@ -158,13 +334,12 @@ class UserManagement
         ]);
 
         if (!$stmtUser) {
-            $this->response = "Failed to update user";
+            $this->response = "Failed to update user: " . implode(", ", $stmt->errorInfo());
             return false;
         }
 
         // Update users_info table
-        $stmt = $this->con->prepare("UPDATE users_info SET firstname = ?, middlename = ?, lastname = ?, age = ?, street = ?, barangay = ?, city = ?, province = ?, country = ?, email = ?, contactnumber = ? 
-        WHERE user_id = ?");
+        $stmt = $this->con->prepare("UPDATE users_info SET firstname = ?, middlename = ?, lastname = ?, age = ?, street = ?, barangay = ?, city = ?, province = ?, country = ?, email = ?, contactnumber = ? WHERE user_id = ?");
 
         $stmtInfo = $stmt->execute([
             $this->firstname,
@@ -185,7 +360,7 @@ class UserManagement
             $this->response = "Success";
             return true;
         } else {
-            $this->response = "Failed to update user information";
+            $this->response = "Failed to update user information: " . implode(", ", $stmt->errorInfo());
             return false;
         }
     }
