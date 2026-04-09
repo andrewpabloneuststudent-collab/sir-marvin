@@ -9,13 +9,13 @@
 
     <!-- 🏥 Logo / System Name -->
     <a class="navbar-brand fw-bold text-success" href="#">
-        💊 MMB'S DRUGSTORE
+        MMB'S DRUGSTORE
     </a>
 
     <!-- 🔍 Search (hidden on small screens) -->
     <form class="d-none d-md-flex ms-3">
         <input class="form-control border-success" type="search" placeholder="Search medicine...">
-    </form>
+    </form> 
 
     <!-- Right Side -->
     <div class="ms-auto d-flex align-items-center gap-2">
@@ -24,7 +24,7 @@
         <button class="btn btn-outline-success position-relative">
             🔔
             <span class="position-absolute top-0 start-100 translate-middle badge bg-danger">
-                3
+                
             </span>
         </button>
 

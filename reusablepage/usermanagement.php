@@ -11,7 +11,6 @@ $users = $usersmanagement->getAllUsers();
 <!DOCTYPE html>
 <html lang="en">
 
-// this is heading
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,7 +27,6 @@ $users = $usersmanagement->getAllUsers();
             </div>
 
             <div class="card-body">
-
                 <div class="table-responsive">
                     <table id="usersTable" class="table table-striped table-hover">
                     <thead class="table-dark">
