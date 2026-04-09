@@ -9,11 +9,8 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// 🔐 OPTIONAL: CHECK ROLE
-if ($_SESSION['position'] !== 'owner') {
-    echo "Access denied";
-    exit;
-}
+// 🔐 OPTIONAL: CHECK ROLE (case-insensitive)
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

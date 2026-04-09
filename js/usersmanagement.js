@@ -42,6 +42,21 @@ $(document).ready(function () {
             alert('Error loading user data');
         }
     });
+
+    // Attach event listeners to delete buttons using event delegation
+    $(document).on('click', '.delete-btn', function () {
+        const userId = $(this).attr('data-userid');
+        const username = $(this).attr('data-username');
+        
+        if (!userId) {
+            alert('Error: Could not find user ID');
+            return;
+        }
+        
+        if (confirm(`Are you sure you want to delete ${username}? This action cannot be undone.`)) {
+            deleteUser(userId);
+        }
+    });
 });
 
 // Reusable function to load modal content from PHP files
@@ -297,6 +312,41 @@ function handleSaveClick() {
             alertBox.className = 'alert alert-danger alert-dismissible fade show';
             alertBox.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i>Network Error: ${error.message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
         }
+    });
+}
+
+// Delete user function
+function deleteUser(userId) {
+    console.log('Delete function called for user ID:', userId);
+    
+    // Create FormData to send delete request
+    const formData = new FormData();
+    formData.append('deleteUser', userId);
+    
+    fetch('/MMBPOS/reusablepage/usermanagement', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => {
+        console.log('Delete response status:', res.status);
+        if (!res.ok) {
+            throw new Error('Server error: HTTP ' + res.status);
+        }
+        return res.json();
+    })
+    .then(data => {
+        console.log('Delete response:', data);
+        
+        if (data.success) {
+            alert(`${data.message}`);
+            location.reload();
+        } else {
+            alert(`Error: ${data.message}`);
+        }
+    })
+    .catch(error => {
+        console.error('Delete error:', error);
+        alert('Error deleting user: ' + error.message);
     });
 }
 

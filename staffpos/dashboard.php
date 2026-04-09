@@ -7,8 +7,8 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// 🔐 OPTIONAL: CHECK ROLE
-if ($_SESSION['position'] !== 'staff') {
+// 🔐 OPTIONAL: CHECK ROLE (case-insensitive)
+if (strtolower($_SESSION['position']) !== 'staff') {
     echo "Access denied";
     exit;
 }
