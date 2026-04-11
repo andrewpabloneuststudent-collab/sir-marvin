@@ -3,16 +3,23 @@ let currentUserId = null;
 
 $(document).ready(function () {
     const table = $('#usersTable').DataTable({
+        dom: 'Bfrtip', // Defines the placement of buttons and other elements
+        buttons: ['copyHtml5', 'excelHtml5', 'csvHtml5', 'pdfHtml5'],
         pageLength: 5,
         lengthMenu: [5, 10, 25, 50],
     });
+
+
+    
+    
+
     
     // Attach event listeners to edit buttons using event delegation
     // This ensures they work even after DataTable redraws the table
     $(document).on('click', '.edit-btn', function () {
         const row = $(this).closest('tr');
         const viewBtn = row.find('.view-btn');
-        const userData = viewBtn.attr('data-usedata');
+        const userData = viewBtn.attr('data-usedata');  
         
         if (!userData) {
             alert('Error: Could not find user data');
@@ -322,7 +329,7 @@ function deleteUser(userId) {
     // Create FormData to send delete request
     const formData = new FormData();
     formData.append('deleteUser', userId);
-    
+            
     fetch('/MMBPOS/reusablepage/usermanagement', {
         method: 'POST',
         body: formData
