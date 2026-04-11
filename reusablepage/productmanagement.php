@@ -1,12 +1,91 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Management</title>
-</head>
-<body>
-    <h1>Product Management</h1>
-    <p>Manage products here.</p>
-</body>
-</html>
+<?php
+require_once __DIR__ . "/../function/addprodfunct.php";
+require_once __DIR__ . "/../conn/connection_links.php";
+
+use Classes\ProductManagement;
+
+$product = new ProductManagement($db);
+$products = $product->getAllProducts();
+$categories = $product->getCategories();
+$classifications = $product->getClassifications();
+
+if (isset($_GET['deleteProduct'])) {
+    $id = (int) $_GET['deleteProduct'];
+
+    if ($product->deleteProduct($id)) {
+        echo "<script>alert('Product deleted successfully'); window.location.href = window.location.pathname;</script>";
+        exit;
+    } else {
+        echo "<script>alert('" . $product->getResponse() . "');</script>";
+    }
+}
+
+$editData = null;
+
+if (isset($_GET['editProduct'])) {
+    $editId = (int) $_GET['editProduct'];
+    $editData = $product->getProductById($editId);
+}
+
+// UPDATE
+if ($product->updateProduct()) {
+    echo "<script>alert('Updated successfully'); window.location.href = window.location.pathname;</script>";
+    exit;
+}
+
+if ($product->addProduct()) {
+    echo "<script>alert('Product added successfully'); window.location.reload();</script>";
+} else {
+    if (!empty($_POST)) {
+        echo "<script>alert('" . $product->getResponse() . "');</script>";
+    }
+}
+?>
+
+<!-- ADD PRODUCT BUTTON -->
+<div class="mb-3">
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
+        + Add Product
+    </button>
+</div>
+
+<table id="usersTable" class="table table-bordered table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Classification</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Expiry</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <?php foreach ($products as $prod): ?>
+            <tr>
+                <td><?= $prod['id'] ?></td>
+                <td><?= $prod['product_name'] ?></td>
+                <td><?= $prod['category_name'] ?? 'N/A' ?></td>
+                <td><?= $prod['classification_name'] ?? 'N/A' ?></td>
+                <td>₱ <?= number_format($prod['price'], 2) ?></td>
+                <td><?= $prod['quantity'] ?></td>
+                <td><?= $prod['expiry_date'] ?? 'N/A' ?></td>
+                <td>
+                    <!-- EDIT -->
+                    <a href="?editProduct=<?= $prod['id'] ?>" class="btn btn-sm btn-primary">Edit</a>
+                    <!-- DELETE -->
+                    <a href="?deleteProduct=<?= $prod['id'] ?>" class="btn btn-sm btn-danger"
+                        onclick="return confirm('Delete this product?')">
+                        Delete
+                    </a>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+<?php include 'addproductmodal.php'; ?>
+<?php include 'updateproductmodal.php'; ?>
+<script src="js/usermanagement.js"></script>
