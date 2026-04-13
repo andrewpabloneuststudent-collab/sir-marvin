@@ -1,0 +1,83 @@
+#lowStockAlert {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1);
+
+    width: 320px;
+    padding: 24px 20px;
+
+    background: linear-gradient(135deg, #fff8e1, #fff3cd);
+    color: #856404;
+
+    border-radius: 14px;
+    border: 1px solid #ffeeba;
+
+    text-align: center;
+    z-index: 9999;
+
+    box-shadow: 
+        0 10px 25px rgba(0, 0, 0, 0.2),
+        0 0 0 1px rgba(255, 193, 7, 0.2);
+
+    font-family: 'Segoe UI', sans-serif;
+
+    animation: popupFade 0.3s ease;
+}
+
+/* Title (if you have h4) */
+#lowStockAlert h4 {
+    margin-bottom: 10px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* Text */
+#lowStockAlert p {
+    font-size: 14px;
+    margin-bottom: 18px;
+    line-height: 1.4;
+}
+
+/* Button */
+#lowStockAlert button {
+    background: linear-gradient(135deg, #ffc107, #ffca2c);
+    color: #333;
+
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+
+    font-weight: 600;
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+#lowStockAlert button:hover {
+    background: linear-gradient(135deg, #e0a800, #ffb300);
+    transform: translateY(-2px);
+}
+
+/* Smooth popup animation */
+@keyframes popupFade {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* Optional: subtle glow effect */
+#lowStockAlert::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(255,193,7,0.3), transparent);
+    z-index: -1;
+    filter: blur(8px);
+}

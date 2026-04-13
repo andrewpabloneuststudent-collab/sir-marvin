@@ -17,7 +17,7 @@ class ProductManagement
     public string $expiry_date;
 
     private $con;
-    private string $response;
+    private string $response = "";
 
     public function __construct($db)
     {
@@ -237,6 +237,73 @@ class ProductManagement
         $stmt->execute([$id]);
 
         return $stmt->fetch();
+    }
+
+    // 🔥 UPDATE STOCK (AUTO HANDLE POST)
+    public function updateStock()
+    {
+        if (isset($_POST['updateStock'])) {
+
+            $id = (int) $_POST['id'];
+            $quantity = (int) $_POST['quantity'];
+            $expiry = $_POST['expiry_date'];
+
+            try {
+                $stmt = $this->con->prepare("
+                UPDATE inventory 
+                SET quantity = ?, expiry_date = ?
+                WHERE product_id = ?
+            ");
+
+                if ($stmt->execute([$quantity, $expiry, $id])) {
+                    $this->response = "success";
+                    return true;
+                } else {
+                    $this->response = "error";
+                    return false;
+                }
+
+            } catch (\Exception $e) {
+                $this->response = "error: " . $e->getMessage();
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    // 🔥 LOW STOCK ALERT (FULL HTML OUTPUT)
+    public function renderLowStockAlert($limit = 50)
+    {
+        $stmt = $this->con->prepare("
+        SELECT 
+            p.product_name,
+            COALESCE(SUM(i.quantity), 0) AS quantity
+        FROM products p
+        LEFT JOIN inventory i ON p.id = i.product_id
+        GROUP BY p.id
+        HAVING quantity <= ? AND quantity > 0
+    ");
+
+        $stmt->execute([$limit]);
+        $items = $stmt->fetchAll();
+
+        if (empty($items)) {
+            return ""; // no alert
+        }
+
+        $html = '<div id="lowStockAlert">';
+        $html .= '⚠ WARNING: Low stock detected!<br><br>';
+
+        foreach ($items as $item) {
+            $html .= '• ' . htmlspecialchars($item['product_name']) .
+                ' (' . $item['quantity'] . ' left)<br>';
+        }
+
+        $html .= '<br><button onclick="closeAlert()">OK</button>';
+        $html .= '</div>';
+
+        return $html;
     }
 
     public function getResponse()
