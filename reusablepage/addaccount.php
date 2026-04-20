@@ -1,143 +1,47 @@
-<?php
-// Clear any buffered output from includes
-@ob_end_clean();
-ob_start();
+<!-- Modal -->
+<div class="modal fade" id="adduser" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
 
-require_once "../conn/database.php";
-require_once "../function/usermanagement.php";
+            <form method="post">
+                <div class="modal-header">
+                    <h5>Add User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
 
-use Classes\UserManagement;
+                <div class="modal-body">
 
-// Handle POST request - Add new user
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    ob_clean();
-    // Set JSON header FIRST before any output
-    header('Content-Type: application/json; charset=utf-8');
-    
-    $userManagement = new UserManagement($db);
-    
-    // Use the reusable createUserAccount method
-    $response = $userManagement->createUserAccount($_POST);
-    
-    echo json_encode($response);
-    exit;
-}
+                    <input name="username" class="form-control mb-2" placeholder="Username" required>
+                    <input type="password" name="password" class="form-control mb-2" placeholder="Password" required>
 
-// GET request - show the form
-ob_end_clean();
-?>
+                    <input name="firstname" class="form-control mb-2" placeholder="First Name">
+                    <input name="middlename" class="form-control mb-2" placeholder="Middle Name">
+                    <input name="lastname" class="form-control mb-2" placeholder="Last Name">
 
-<!-- Add Account Modal Content -->
-<div class="modal-header bg-success text-white border-0">
-    <h5 class="modal-title">
-        <i class="fas fa-user-plus"></i> Add New Account
-    </h5>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-</div>
+                    <input type="number" name="age" class="form-control mb-2" placeholder="Age">
 
-<div class="modal-body p-4">
-    <!-- Alert Box -->
-    <div id="addAlert" class="alert d-none" role="alert"></div>
+                    <input type="email" name="email" class="form-control mb-2" placeholder="Email">
+                    <input name="contactnumber" class="form-control mb-2" placeholder="Contact Number">
 
-    <form id="addAccountForm" novalidate>
-        <div class="row g-3 mb-4">
-            <!-- Username -->
-            <div class="col-md-6">
-                <label for="addUsername" class="form-label">Username <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="addUsername" name="username" required>
-            </div>
+                    <input name="street" class="form-control mb-2" placeholder="Street">
+                    <input name="barangay" class="form-control mb-2" placeholder="Barangay">
+                    <input name="city" class="form-control mb-2" placeholder="City">
+                    <input name="province" class="form-control mb-2" placeholder="Province">
+                    <input name="country" class="form-control mb-2" placeholder="Country">
 
-            <!-- Password -->
-            <div class="col-md-6">
-                <label for="addPassword" class="form-label">Password <span class="text-danger">*</span></label>
-                <input type="password" class="form-control" id="addPassword" name="password" required>
-            </div>
+                    <select name="position" class="form-control mb-2">
+                        <option>Admin</option>
+                        <option>Owner</option>
+                        <option selected>Staff</option>
+                    </select>
 
-            <!-- First Name -->
-            <div class="col-md-6">
-                <label for="addFirstname" class="form-label">First Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="addFirstname" name="firstname" required>
-            </div>
+                </div>
 
-            <!-- Middle Name -->
-            <div class="col-md-6">
-                <label for="addMiddlename" class="form-label">Middle Name</label>
-                <input type="text" class="form-control" id="addMiddlename" name="middlename">
-            </div>
+                <div class="modal-footer">
+                    <button type="submit" name="addUser" class="btn btn-primary">Save</button>
+                </div>
+            </form>
 
-            <!-- Last Name -->
-            <div class="col-md-6">
-                <label for="addLastname" class="form-label">Last Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="addLastname" name="lastname" required>
-            </div>
-
-            <!-- Age -->
-            <div class="col-md-6">
-                <label for="addAge" class="form-label">Age</label>
-                <input type="number" class="form-control" id="addAge" name="age" min="1" max="150">
-            </div>
-
-            <!-- Email -->
-            <div class="col-md-6">
-                <label for="addEmail" class="form-label">Email <span class="text-danger">*</span></label>
-                <input type="email" class="form-control" id="addEmail" name="email" required>
-            </div>
-
-            <!-- Position -->
-            <div class="col-md-6">
-                <label for="addPosition" class="form-label">Position <span class="text-danger">*</span></label>
-                <select class="form-select" id="addPosition" name="position" required>
-                    <option value="">Select Position</option>
-                    <option value="Admin">Admin</option>
-                    <option value="Owner">Owner</option>
-                    <option value="Staff">Staff</option>
-                </select>
-            </div>
-
-            <!-- Contact Number -->
-            <div class="col-md-6">
-                <label for="addContactnumber" class="form-label">Contact Number</label>
-                <input type="tel" class="form-control" id="addContactnumber" name="contactnumber">
-            </div>
-
-            <!-- Street -->
-            <div class="col-md-6">
-                <label for="addStreet" class="form-label">Street</label>
-                <input type="text" class="form-control" id="addStreet" name="street">
-            </div>
-
-            <!-- Barangay -->
-            <div class="col-md-6">
-                <label for="addBarangay" class="form-label">Barangay</label>
-                <input type="text" class="form-control" id="addBarangay" name="barangay">
-            </div>
-
-            <!-- City -->
-            <div class="col-md-6">
-                <label for="addCity" class="form-label">City</label>
-                <input type="text" class="form-control" id="addCity" name="city">
-            </div>
-
-            <!-- Province -->
-            <div class="col-md-6">
-                <label for="addProvince" class="form-label">Province</label>
-                <input type="text" class="form-control" id="addProvince" name="province">
-            </div>
-
-            <!-- Country -->
-            <div class="col-md-6">
-                <label for="addCountry" class="form-label">Country</label>
-                <input type="text" class="form-control" id="addCountry" name="country">
-            </div>
         </div>
-    </form>
-</div>
-
-<div class="modal-footer border-top">
-    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-        <i class="fas fa-times"></i> Cancel
-    </button>
-    <button type="button" class="btn btn-success" id="addSaveBtn">
-        <i class="fas fa-save"></i> Create Account
-    </button>
+    </div>
 </div>

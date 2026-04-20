@@ -16,6 +16,8 @@ if (isset($_GET['editProduct'])) {
     $page = 'product';
 }
 
+
+
 // 🔐 OPTIONAL: CHECK ROLE (case-insensitive)
 
 ?>
@@ -47,7 +49,7 @@ if (isset($_GET['editProduct'])) {
 
                     <a class="nav-link active" data-bs-toggle="pill" href="#v-pills-dashboard">Dashboard</a>
                     <a class="nav-link" data-bs-toggle="pill" href="#v-pills-product">Product Management</a>
-                    <a class="nav-link" data-bs-toggle="pill" href="#v-pills-inventory">Inventory Management</a>
+                    <a class="nav-link" data-bs-toggle="pill" href="#v-pills-inventory">Inventory</a>
                     <a class="nav-link" data-bs-toggle="pill" href="#v-pills-sales">Sales (POS)</a>
                     <a class="nav-link" data-bs-toggle="pill" href="#v-pills-purchase">Purchase / Restock</a>
                     <a class="nav-link" data-bs-toggle="pill" href="#v-pills-reports">Reports</a>

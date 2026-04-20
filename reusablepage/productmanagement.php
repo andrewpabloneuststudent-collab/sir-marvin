@@ -42,50 +42,57 @@ if ($product->addProduct()) {
 }
 ?>
 
-<!-- ADD PRODUCT BUTTON -->
-<div class="mb-3">
-    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
-        + Add Product
-    </button>
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <!-- ADD PRODUCT BUTTON -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">Product Management</h4>
+
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                + Add Product
+            </button>
+        </div>
+
+        <table class="table table-striped table-hover align-middle w-100 myTable">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Classification</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Expiry</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <?php foreach ($products as $prod): ?>
+                    <tr>
+                        <td><?= $prod['id'] ?></td>
+                        <td><?= $prod['product_name'] ?></td>
+                        <td><?= $prod['category_name'] ?? 'N/A' ?></td>
+                        <td><?= $prod['classification_name'] ?? 'N/A' ?></td>
+                        <td>₱ <?= number_format($prod['price'], 2) ?></td>
+                        <td><?= $prod['quantity'] ?></td>
+                        <td><?= $prod['expiry_date'] ?? 'N/A' ?></td>
+                        <td>
+                            <!-- EDIT -->
+                            <a href="?editProduct=<?= $prod['id'] ?>" class="btn btn-sm btn-primary">Edit</a>
+                            <!-- DELETE -->
+                            <a href="?deleteProduct=<?= $prod['id'] ?>" class="btn btn-sm btn-danger"
+                                onclick="return confirm('Delete this product?')">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
-
-<table id="usersTable" class="table table-bordered table-hover">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Product</th>
-            <th>Category</th>
-            <th>Classification</th>
-            <th>Price</th>
-            <th>Stock</th>
-            <th>Expiry</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-
-    <tbody>
-        <?php foreach ($products as $prod): ?>
-            <tr>
-                <td><?= $prod['id'] ?></td>
-                <td><?= $prod['product_name'] ?></td>
-                <td><?= $prod['category_name'] ?? 'N/A' ?></td>
-                <td><?= $prod['classification_name'] ?? 'N/A' ?></td>
-                <td>₱ <?= number_format($prod['price'], 2) ?></td>
-                <td><?= $prod['quantity'] ?></td>
-                <td><?= $prod['expiry_date'] ?? 'N/A' ?></td>
-                <td>
-                    <!-- EDIT -->
-                    <a href="?editProduct=<?= $prod['id'] ?>" class="btn btn-sm btn-primary">Edit</a>
-                    <!-- DELETE -->
-                    <a href="?deleteProduct=<?= $prod['id'] ?>" class="btn btn-sm btn-danger"
-                        onclick="return confirm('Delete this product?')">
-                        Delete
-                    </a>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
 <?php include 'addproductmodal.php'; ?>
 <?php include 'updateproductmodal.php'; ?>
 <script src="js/usermanagement.js"></script>

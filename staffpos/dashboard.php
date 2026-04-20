@@ -12,16 +12,42 @@ if (strtolower($_SESSION['position']) !== 'staff') {
     echo "Access denied";
     exit;
 }
+
+require_once __DIR__ . "/../conn/Database.php";
+require_once __DIR__ . "/../conn/connection_links.php";
+require_once __DIR__ . "/../function/userregistration.php";
+
+use Classes\UserRegistration;
+
+$user = new UserRegistration($db);
+$user->pre_addUser();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Staff Dashboard</title>
+
 </head>
-<body>
-    Staff Dashboard
-    <a href="../login_logout_page/logout.php" class="btn btn-danger">Logout</a>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <?php include __DIR__ . "/../reusablepage/header.php"; ?>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-fill">
+        <?php include __DIR__ . "/../reusablepage/salespos.php"; ?>
+    </main>
+
+    <!-- FOOTER -->
+   <footer class="text-center" style="padding: 4px 0;">
+    <?php include __DIR__ . "/../reusablepage/footer.php"; ?>
+</footer>
+
 </body>
+
 </html>
+

@@ -1,116 +1,135 @@
 <?php
+require_once __DIR__ . "/../conn/database.php";
+require_once __DIR__ . "/../function/usermanagement.php";
+
 use Classes\UserManagement;
-require_once "../conn/database.php";
-require_once "../function/usermanagement.php";
 
 $usersmanagement = new UserManagement($db);
 
-// Handle AJAX delete request
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteUser'])) {
-    header('Content-Type: application/json');
-    
-    $userId = intval($_POST['deleteUser']);
-    
-    if ($usersmanagement->deleteUser($userId)) {
-        echo json_encode(['success' => true, 'message' => 'User deleted successfully']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to delete user']);
-    }
-    exit;
+// ✅ CONTROLLER
+$result = null;
+
+if (isset($_POST['addUser'])) {
+    $result = $usersmanagement->addUser($_POST);
 }
 
+if (isset($_POST['updateUser'])) {
+    $id = (int) ($_POST['id'] ?? 0);
+    $result = $usersmanagement->updateUser($id, $_POST);
+}
+
+if (isset($_POST['deleteUser'])) {
+    $id = (int) ($_POST['id'] ?? 0);
+    $result = $usersmanagement->deleteUser($id);
+}
+
+// ✅ FETCH DATA
 $users = $usersmanagement->getAllUsers();
 ?>
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management</title>
-    <?php include_once __DIR__ . "/../conn/connection_links.php"; ?>
-</head>
+<!-- ✅ GLOBAL ALERT -->
+<?php if ($result): ?>
+    <script>
+        alert("<?= $result['message'] ?>");
+        <?= $result['success'] ? "window.location.href = window.location.pathname;" : "" ?>
+    </script>
+<?php endif; ?>
 
-<body class="bg-light">
-    <?php include_once __DIR__ . "/header.php"; ?>
-    <div class="container py-5">
-        <div class="card shadow rounded-4">
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+<!-- ✅ CUSTOM TABLE SPACING -->
+<link rel="stylesheet" href="/MMBPOS/css/table.css">
+<div class="container-fluid px-4 mt-3">
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <!-- HEADER -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="mb-0">User Management</h4>
-                <button type="button" class="btn btn-success btn-sm" id="addAccountBtn">
-                    <i class="fas fa-user-plus"></i> Add Account
+
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#adduser">
+                    Add User
                 </button>
             </div>
 
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table id="usersTable" class="table table-striped table-hover">
-                        <thead class="table-dark">
+            <!-- TABLE -->
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle w-100 myTable userstable">
+
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="col-id">ID</th>
+                            <th class="col-name">Name</th>
+                            <th class="col-position">Position</th>
+                            <th class="col-action text-center">Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <?php foreach ($users as $u): ?>
                             <tr>
-                                <th>ID</th>
-                                <th width="200">Name</th>
-                                <th width="200">Position</th>
-                                <th width="200">Action</th>
+                                <td class="col-id"><?= $u['id'] ?></td>
+
+                                <td class="col-name"><?= ($u['firstname']), " ", ($u['lastname']) ?></td>
+
+                                <td class="col-position">
+                                    <?php
+                                    $pos = $u['position'];
+
+                                    if ($pos === 'Admin') {
+                                        $badgeClass = 'bg-danger';
+                                    } elseif ($pos === 'Owner') {
+                                        $badgeClass = 'bg-dark';
+                                    } elseif ($pos === 'Staff') {
+                                        $badgeClass = 'bg-success';
+                                    } else {
+                                        $badgeClass = 'bg-secondary';
+                                    }
+                                    ?>
+
+                                    <span class="badge <?= $badgeClass ?> badge-uniform">
+                                        <?= htmlspecialchars($pos) ?>
+                                    </span>
+                                </td>
+
+                                <td class="col-action text-center ">
+
+                                    <!-- VIEW -->
+                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal"
+                                        data-bs-target="#view<?= $u['id'] ?>">
+                                        View
+                                    </button>
+
+                                    <!-- EDIT -->
+                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                        data-bs-target="#edit<?= $u['id'] ?>">
+                                        Edit
+                                    </button>
+
+                                    <!-- DELETE -->
+                                    <form method="POST" class="d-inline">
+                                        <input type="hidden" name="id" value="<?= $u['id'] ?>">
+                                        <button type="submit" name="deleteUser" class="btn btn-danger btn-sm"
+                                            onclick="return confirm('Delete this user?')">
+                                            Delete
+                                        </button>
+                                    </form>
+
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($users as $member): ?>
-                                <tr>
-                                    <td>
-                                        <?php echo $member['id']; ?>
-                                    </td>
-                                    <td>
-                                        <?php echo $member['firstname'] . ' ' . $member['middlename'] . ' ' . $member['lastname']; ?>
-                                    </td>
-                                    <td>
-                                        <?php echo $member['position']; ?>
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-sm btn-info text-white view-btn"
-                                            data-usedata='<?php echo json_encode($member); ?>'
-                                            onclick="showUserDetails(this)">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
-                                        <button class="btn btn-warning btn-sm edit-btn" data-user='<?= json_encode($member) ?>'>
-                                            Edit
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-danger delete-btn"
-                                            data-userid="<?php echo $member['id']; ?>"
-                                            data-username="<?php echo $member['firstname'] . ' ' . $member['lastname']; ?>">
-                                            <i class="fas fa-trash"></i> Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+
+                            <?php include 'editaccount.php'; ?>
+                            <?php include 'viewaccount.php'; ?>
+
+                        <?php endforeach; ?>
+                    </tbody>
+
+                </table>
             </div>
-        </div>
 
-    </div>
-
-    <?php include_once __DIR__ . "/viewaccount.php"; ?>
-
-    <!-- Floating Modal for Edit Account -->
-    <div class="modal fade" id="editAccountModal" tabindex="-1" aria-labelledby="editAccountLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content shadow-lg border-0" id="editModalContent">
-                <!-- editaccount.php content will be loaded here -->
-            </div>
         </div>
     </div>
 
-    <!-- Floating Modal for Add Account -->
-    <div class="modal fade" id="addAccountModal" tabindex="-1" aria-labelledby="addAccountLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content shadow-lg border-0" id="addModalContent">
-                <!-- addaccount.php content will be loaded here -->
-            </div>
-        </div>
-    </div>
+</div>
 
-    <script src="../js/usersmanagement.js"></script>
-</body>
-
-</html>
+<?php include 'addaccount.php'; ?>
+<script src="../js/usersmanagement.js"></script>
