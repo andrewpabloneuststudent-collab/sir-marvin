@@ -7,6 +7,6 @@
 </head>
 <body>
     <h1>User Authentication & Security</h1>
-    <p>Manage security settings here.</p>
+    <?php include "ownerapprovalpage.php"; ?>
 </body>
 </html>

@@ -10,6 +10,7 @@ $product = new ProductManagement($db);
 $categories = $product->getCategories();
 $classifications = $product->getClassifications();
 ?>
+
 <!-- ADD PRODUCT MODAL -->
 <div class="modal fade" id="addProductModal" tabindex="-1">
     <div class="modal-dialog">

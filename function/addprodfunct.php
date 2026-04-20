@@ -306,6 +306,81 @@ class ProductManagement
         return $html;
     }
 
+    public function renderExpiryAlert()
+    {
+        $products = $this->getAllProducts();
+        $items = [];
+
+        $today = new \DateTime();
+
+        foreach ($products as $prod) {
+            if (!empty($prod['expiry_date'])) {
+                $expDate = new \DateTime($prod['expiry_date']);
+                $interval = $today->diff($expDate);
+
+                if ($expDate < $today) {
+                    $items[] = [
+                        'name' => $prod['product_name'],
+                        'status' => 'Expired'
+                    ];
+                } elseif ($interval->days <= 7 && !$interval->invert) {
+                    $items[] = [
+                        'name' => $prod['product_name'],
+                        'status' => 'Near Expiry'
+                    ];
+                }
+            }
+        }
+
+        if (empty($items)) {
+            return '';
+        }
+
+        $html = '<div id="expiryAlert">';
+        $html .= '<h4>⚠ Expiration Warning</h4><br>';
+
+        foreach ($items as $item) {
+
+            if ($item['status'] === 'Expired') {
+                $html .= "<div class='expiry-expired'>• " . htmlspecialchars($item['name']) . " (Expired)</div>";
+            } else {
+                $html .= "<div class='expiry-near'>• " . htmlspecialchars($item['name']) . " (Near Expiry)</div>";
+            }
+        }
+
+        $html .= '<br><button onclick="document.getElementById(\'expiryAlert\').remove()">OK</button>';
+        $html .= '</div>';
+
+        return $html;
+    }
+
+    public function getExpiryStatus(array $products): array
+    {
+        $expired = [];
+        $near = [];
+
+        $today = new \DateTime();
+
+        foreach ($products as $prod) {
+            if (empty($prod['expiry_date']))
+                continue;
+
+            $expDate = new \DateTime($prod['expiry_date']);
+            $interval = $today->diff($expDate);
+
+            if ($expDate <= $today) {
+                $expired[] = $prod;
+            } elseif ($interval->days <= 90 && !$interval->invert) {
+                $near[] = $prod;
+            }
+        }
+
+        return [
+            'expired' => $expired,
+            'near' => $near
+        ];
+    }
+
     public function getResponse()
     {
         return $this->response;

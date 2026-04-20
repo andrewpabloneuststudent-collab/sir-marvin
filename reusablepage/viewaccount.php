@@ -1,120 +1,52 @@
-<?php
-require_once "../conn/database.php";
-require_once "../function/usermanagement.php";
+<div class="modal fade" id="view<?= $u['id'] ?>" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
 
-use Classes\UserManagement;
+            <div class="modal-header">
+                <h5 class="modal-title">User Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
 
-$userManagement = new UserManagement($db);
-$data = null;
+            <div class="modal-body">
 
-// Load user data if GET request with ID
-if (isset($_GET['id'])) {
-    $userId = intval($_GET['id']);
-    $data = $userManagement->getUserById($userId);
-    
-    // Output only modal body content for AJAX loading
-    ?>
-    <!-- Modal Body Content -->
-    <div class="modal-header bg-dark text-white border-0">
-        <h5 class="modal-title">
-            <i class="fas fa-user-circle"></i> User Details
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-    </div>
-
-    <div class="modal-body p-4">
-        <div class="row mb-4">
-            <div class="col-md-4 text-center">
-                <div class="bg-primary text-white rounded-circle p-4 d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
-                    <i class="fas fa-user fa-3x"></i>
+                <!-- BASIC INFO -->
+                <h6 class="mb-3">Basic Information</h6>
+                <div class="row">
+                    <div class="col-md-4"><strong>ID:</strong> <?= $u['id'] ?></div>
+                    <div class="col-md-4"><strong>First Name:</strong> <?= htmlspecialchars($u['firstname']) ?></div>
+                    <div class="col-md-4"><strong>Middle Name:</strong> <?= htmlspecialchars($u['middlename']) ?></div>
+                    <div class="col-md-4 mt-2"><strong>Last Name:</strong> <?= htmlspecialchars($u['lastname']) ?></div>
+                    <div class="col-md-4 mt-2"><strong>Age:</strong> <?= $u['age'] ?></div>
+                    <div class="col-md-4 mt-2"><strong>Position:</strong> <?= htmlspecialchars($u['position']) ?></div>
                 </div>
-                <h5 class="mt-3 fw-bold"><?php echo $data['firstname'] . ' ' . $data['lastname']; ?></h5>
-                <p class="text-muted mb-0"><?php echo $data['position']; ?></p>
-            </div>
-            <div class="col-md-8">
-                <h6 class="fw-bold mb-3 pb-2 border-bottom">
-                    <i class="fas fa-info-circle text-primary"></i> Personal Information
-                </h6>
-                <div class="row g-2">
-                    <div class="col-12">
-                        <small class="text-muted fw-bold">First Name</small>
-                        <p class="mb-2"><?php echo $data['firstname']; ?></p>
-                    </div>
-                    <div class="col-12">
-                        <small class="text-muted fw-bold">Middle Name</small>
-                        <p class="mb-2"><?php echo $data['middlename']; ?></p>
-                    </div>
-                    <div class="col-12">
-                        <small class="text-muted fw-bold">Last Name</small>
-                        <p class="mb-2"><?php echo $data['lastname']; ?></p>
-                    </div>
-                    <div class="col-12">
-                        <small class="text-muted fw-bold">Username</small>
-                        <p class="mb-2">@<?php echo $data['username']; ?></p>
-                    </div>
-                    <div class="col-12">
-                        <small class="text-muted fw-bold">Email</small>
-                        <p class="mb-2"><?php echo $data['email']; ?></p>
-                    </div>
-                    <div class="col-12">
-                        <small class="text-muted fw-bold">Age</small>
-                        <p class="mb-2"><?php echo $data['age']; ?> years old</p>
-                    </div>
+
+                <hr>
+
+                <!-- CONTACT -->
+                <h6 class="mb-3">Contact</h6>
+                <div class="row">
+                    <div class="col-md-6"><strong>Email:</strong> <?= htmlspecialchars($u['email']) ?></div>
+                    <div class="col-md-6"><strong>Contact No:</strong> <?= htmlspecialchars($u['contactnumber']) ?></div>
                 </div>
-            </div>
-        </div>
 
-        <hr class="my-3">
+                <hr>
 
-        <h6 class="fw-bold mb-3 pb-2 border-bottom">
-            <i class="fas fa-map-marker-alt text-success"></i> Address Information
-        </h6>
-        <div class="row g-3">
-            <div class="col-md-6">
-                <small class="text-muted fw-bold">Street</small>
-                <p><?php echo $data['street']; ?></p>
+                <!-- ADDRESS -->
+                <h6 class="mb-3">Address</h6>
+                <div class="row">
+                    <div class="col-md-4"><strong>Street:</strong> <?= htmlspecialchars($u['street']) ?></div>
+                    <div class="col-md-4"><strong>Barangay:</strong> <?= htmlspecialchars($u['barangay']) ?></div>
+                    <div class="col-md-4"><strong>City:</strong> <?= htmlspecialchars($u['city']) ?></div>
+                    <div class="col-md-4 mt-2"><strong>Province:</strong> <?= htmlspecialchars($u['province']) ?></div>
+                    <div class="col-md-4 mt-2"><strong>Country:</strong> <?= htmlspecialchars($u['country']) ?></div>
+                </div>
+
             </div>
-            <div class="col-md-6">
-                <small class="text-muted fw-bold">Barangay</small>
-                <p><?php echo $data['barangay']; ?></p>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
-            <div class="col-md-6">
-                <small class="text-muted fw-bold">City</small>
-                <p><?php echo $data['city']; ?></p>
-            </div>
-            <div class="col-md-6">
-                <small class="text-muted fw-bold">Province</small>
-                <p><?php echo $data['province']; ?></p>
-            </div>
-            <div class="col-md-6">
-                <small class="text-muted fw-bold">Country</small>
-                <p><?php echo $data['country']; ?></p>
-            </div>
-            <div class="col-md-6">
-                <small class="text-muted fw-bold">Contact Number</small>
-                <p><?php echo $data['contactnumber']; ?></p>
-            </div>
+
         </div>
     </div>
-
-    <div class="modal-footer border-top">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            <i class="fas fa-times"></i> Close
-        </button>
-        <button type="button" class="btn btn-warning" id="viewEditBtn" onclick="openEditFromView(<?php echo $data['id']; ?>)">
-            <i class="fas fa-edit"></i> Edit
-        </button>
-    </div>
-    <?php
-    exit;
-}
-?>
-
-    <!-- Floating Modal for User Details -->
-    <div class="modal fade" id="userDetailsModal" tabindex="-1" aria-labelledby="userDetailsLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content shadow-lg border-0" id="viewModalContent">
-                <!-- View modal content will be loaded here via AJAX -->
-            </div>
-        </div>
-    </div>
+</div>
