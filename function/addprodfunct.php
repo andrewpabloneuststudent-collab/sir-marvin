@@ -28,14 +28,14 @@ class ProductManagement
     public function getPost()
     {
         if (!empty($_POST)) {
-            $this->product_name = $_POST['product_name'];
-            $this->barcode = !empty($_POST['barcode']) ? $_POST['barcode'] : null;
-            $this->category_id = (int) $_POST['category_id'];
-            $this->classification_id = (int) $_POST['classification_id'];
-            $this->unit = $_POST['unit'];
-            $this->price = (float) $_POST['price'];
-            $this->quantity = (int) $_POST['quantity'];
-            $this->expiry_date = $_POST['expiry_date'];
+            $this->product_name = $_POST['product_name'] ?? '';
+            $this->barcode = $_POST['barcode'] ?? '';
+            $this->category_id = (int) ($_POST['category_id'] ?? 0);
+            $this->classification_id = (int) ($_POST['classification_id'] ?? 0);
+            $this->unit = $_POST['unit'] ?? '';
+            $this->price = (float) ($_POST['price'] ?? 0);
+            $this->quantity = (int) ($_POST['quantity'] ?? 0);
+            $this->expiry_date = $_POST['expiry_date'] ?? '';
         }
     }
 
@@ -103,6 +103,8 @@ class ProductManagement
                 p.product_name,
                 p.price,
                 pc.category_name,
+                p.barcode,
+                p.unit,
                 pcl.classification_name,
                 COALESCE(SUM(i.quantity), 0) AS quantity,
                 MAX(i.expiry_date) AS expiry_date

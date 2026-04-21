@@ -6,9 +6,9 @@ use Classes\UserManagement;
 
 $usersmanagement = new UserManagement($db);
 
-// ✅ CONTROLLER
 $result = null;
 
+// CONTROLLER
 if (isset($_POST['addUser'])) {
     $result = $usersmanagement->addUser($_POST);
 }
@@ -23,15 +23,18 @@ if (isset($_POST['deleteUser'])) {
     $result = $usersmanagement->deleteUser($id);
 }
 
-// ✅ FETCH DATA
+// FETCH
 $users = $usersmanagement->getAllUsers();
 ?>
 
-<!-- ✅ GLOBAL ALERT -->
+<!-- ✅ ALERT + REDIRECT -->
 <?php if ($result): ?>
     <script>
         alert("<?= $result['message'] ?>");
-        <?= $result['success'] ? "window.location.href = window.location.pathname;" : "" ?>
+
+        <?php if ($result['success']): ?>
+            window.location.href = 'dashboard.php?tab=users';
+        <?php endif; ?>
     </script>
 <?php endif; ?>
 

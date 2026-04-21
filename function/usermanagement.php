@@ -38,62 +38,75 @@ class UserManagement
     }
 
     // 🔥 ADD USER (TRANSACTION SAFE)
-    public function addUser(array $data): array
-    {
-        $d = $this->input($data);
+   public function addUser(array $data): array
+{
+    $d = $this->input($data);
 
-        try {
-            $this->con->beginTransaction();
+    try {
+        $this->con->beginTransaction();
 
-            // Check username
-            $stmt = $this->con->prepare("SELECT id FROM users WHERE username = ?");
-            $stmt->execute([$d['username']]);
+        // Check username
+        $stmt = $this->con->prepare("SELECT id FROM users WHERE username = ?");
+        $stmt->execute([$d['username']]);
 
-            if ($stmt->fetch()) {
-                return ['success' => false, 'message' => 'Username already exists'];
-            }
-
-            // Insert user
-            $this->con->prepare("
-                INSERT INTO users (username, password, position, failed_attempts)
-                VALUES (?, ?, ?, 0)
-            ")->execute([
-                        $d['username'],
-                        password_hash($d['password'], PASSWORD_BCRYPT),
-                        $d['position']
-                    ]);
-
-            $userId = $this->con->lastInsertId();
-
-            // Insert info
-            $this->con->prepare("
-                INSERT INTO users_info
-                (user_id, firstname, middlename, lastname, age, street, barangay, city, province, country, email, contactnumber)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ")->execute([
-                        $userId,
-                        $d['firstname'],
-                        $d['middlename'],
-                        $d['lastname'],
-                        $d['age'],
-                        $d['street'],
-                        $d['barangay'],
-                        $d['city'],
-                        $d['province'],
-                        $d['country'],
-                        $d['email'],
-                        $d['contactnumber']
-                    ]);
-
-            $this->con->commit();
-
-            return ['success' => true, 'message' => 'User added successfully'];
-
-        } catch (\Throwable $e) {
-            $this->con->rollBack();
-            return ['success' => false, 'message' => $e->getMessage()];
+        if ($stmt->fetch()) {
+            return ['success' => false, 'message' => 'Username already exists'];
         }
+
+        // ✅ Default: no void password
+        $voidRaw = null;
+
+        // ✅ ONLY generate if NOT staff
+        if (strtolower($d['position']) !== 'staff') {
+            $voidRaw = random_int(1000, 9999); // plain PIN
+        }
+
+        // Insert user (NO HASH for void_password)
+        $this->con->prepare("
+            INSERT INTO users (username, password, position, failed_attempts, void_password)
+            VALUES (?, ?, ?, 0, ?)
+        ")->execute([
+            $d['username'],
+            password_hash($d['password'], PASSWORD_BCRYPT), // keep login password hashed
+            $d['position'],
+            $voidRaw // ✅ store plain PIN
+        ]);
+
+        $userId = $this->con->lastInsertId();
+
+        // Insert info
+        $this->con->prepare("
+            INSERT INTO users_info
+            (user_id, firstname, middlename, lastname, age, street, barangay, city, province, country, email, contactnumber)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ")->execute([
+            $userId,
+            $d['firstname'],
+            $d['middlename'],
+            $d['lastname'],
+            $d['age'],
+            $d['street'],
+            $d['barangay'],
+            $d['city'],
+            $d['province'],
+            $d['country'],
+            $d['email'],
+            $d['contactnumber']
+        ]);
+
+        $this->con->commit();
+
+        return [
+            'success' => true,
+            'message' => 'User added successfully',
+            'void_pin' => $voidRaw // show in alert if needed
+        ];
+
+    } catch (\Throwable $e) {
+        $this->con->rollBack();
+        return ['success' => false, 'message' => $e->getMessage()];
     }
+}
 
     // 🔥 UPDATE USER (MERGED VERSION - no duplicate methods)
     public function updateUser(int $userId, array $data): array
