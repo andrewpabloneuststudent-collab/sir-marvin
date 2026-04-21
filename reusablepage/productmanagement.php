@@ -13,30 +13,24 @@ if (isset($_GET['deleteProduct'])) {
     $id = (int) $_GET['deleteProduct'];
 
     if ($product->deleteProduct($id)) {
-        echo "<script>alert('Product deleted successfully'); window.location.href = window.location.pathname;</script>";
+        echo "<script>alert('Product deleted successfully'); window.location.href = window.location.href = 'dashboard.php?tab=product';</script>";
         exit;
     } else {
         echo "<script>alert('" . $product->getResponse() . "');</script>";
     }
 }
 
-$editData = null;
-
-if (isset($_GET['editProduct'])) {
-    $editId = (int) $_GET['editProduct'];
-    $editData = $product->getProductById($editId);
-}
-
 // UPDATE
 if ($product->updateProduct()) {
-    echo "<script>alert('Updated successfully'); window.location.href = window.location.pathname;</script>";
+    echo "<script>alert('Updated successfully'); window.location.href = window.location.href = 'dashboard.php?tab=product';</script>";
     exit;
 }
 
 if ($product->addProduct()) {
-    echo "<script>alert('Product added successfully'); window.location.reload();</script>";
+    echo "<script>alert('Product added successfully'); window.location.href = window.location.href = 'dashboard.php?tab=product';</script>";
+    exit;
 } else {
-    if (!empty($_POST)) {
+    if (!empty($_POST) && isset($_POST['addProduct'])) {
         echo "<script>alert('" . $product->getResponse() . "');</script>";
     }
 }
@@ -64,6 +58,7 @@ if ($product->addProduct()) {
                     <th>Price</th>
                     <th>Stock</th>
                     <th>Expiry</th>
+                    <th>Barcode</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -78,9 +73,13 @@ if ($product->addProduct()) {
                         <td>₱ <?= number_format($prod['price'], 2) ?></td>
                         <td><?= $prod['quantity'] ?></td>
                         <td><?= $prod['expiry_date'] ?? 'N/A' ?></td>
+                        <td><?= $prod['barcode'] ?></td>
                         <td>
                             <!-- EDIT -->
-                            <a href="?editProduct=<?= $prod['id'] ?>" class="btn btn-sm btn-primary">Edit</a>
+                            <button class="btn btn-warning" data-bs-toggle="modal"
+                                data-bs-target="#editProduct<?= $prod['id'] ?>">
+                                Edit
+                            </button>
                             <!-- DELETE -->
                             <a href="?deleteProduct=<?= $prod['id'] ?>" class="btn btn-sm btn-danger"
                                 onclick="return confirm('Delete this product?')">
@@ -93,6 +92,6 @@ if ($product->addProduct()) {
         </table>
     </div>
 </div>
-<?php include 'addproductmodal.php'; ?>
 <?php include 'updateproductmodal.php'; ?>
+<?php include 'addproductmodal.php'; ?>
 <script src="js/usermanagement.js"></script>

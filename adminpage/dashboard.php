@@ -1,17 +1,17 @@
 <?php
 session_start();
 
-// 🔐 CHECK IF LOGGED IN
 if (!isset($_SESSION['user_id'])) {
     header("Location: /MMBPOS/login.php");
     exit;
 }
 
-// 🔐 OPTIONAL: CHECK ROLE (case-insensitive)
 if (strtolower($_SESSION['position']) !== 'admin') {
     echo "Access denied";
     exit;
 }
+
+$activeTab = $_GET['tab'] ?? 'dashboard';
 
 require_once __DIR__ . "/../conn/Database.php";
 require_once __DIR__ . "/../conn/connection_links.php";
@@ -21,12 +21,18 @@ use Classes\UserRegistration;
 
 $user = new UserRegistration($db);
 
-// ✅ handle POST properly
-if ($user->pre_addUser()) {
-    header("Location: dashboard?page=users&success=1");
-    exit;
+// ✅ SAFE POST HANDLING
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($user->pre_addUser()) {
+        header("Location: dashboard.php?tab=users&added=1");
+        exit;
+    }
 }
 
+// ✅ ALERT AFTER REDIRECT
+if (isset($_GET['added'])) {
+    echo "<script>alert('User added successfully!');</script>";
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -34,12 +40,12 @@ if ($user->pre_addUser()) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Owner Dashboard</title>
+    <title>Admiin Dashboard</title>
 
 </head>
 
 <body class="d-flex flex-column m-0 p-0" style="min-height: 100vh;">
-    <?php include __DIR__ . "/../reusablepage/header.php"; ?>
+   <?php include __DIR__ . "/../reusablepage/header.php"; ?>
 
 
     <div class="d-flex">
@@ -54,50 +60,58 @@ if ($user->pre_addUser()) {
             <div class="offcanvas-body">
                 <div class="nav flex-column nav-pills me-3" role="tablist">
 
-                    <a class="nav-link active" data-bs-toggle="pill" href="#v-pills-dashboard">Dashboard</a>
-                    <a class="nav-link" data-bs-toggle="pill" href="#v-pills-product">Product Management</a>
-                    <a class="nav-link" data-bs-toggle="pill" href="#v-pills-inventory">Inventory</a>
-                    <a class="nav-link" data-bs-toggle="pill" href="#v-pills-sales">Sales (POS)</a>
-                    <a class="nav-link" data-bs-toggle="pill" href="#v-pills-purchase">Purchase / Restock</a>
-                    <a class="nav-link" data-bs-toggle="pill" href="#v-pills-reports">Reports</a>
-                    <a class="nav-link" data-bs-toggle="pill" href="#v-pills-users">User Management</a>
-                    <a class="nav-link" data-bs-toggle="pill" href="#v-pills-pendingaccount">Pending Account</a>
-                    <a class="nav-link" data-bs-toggle="pill" href="#v-pills-system">System Settings</a>
+                    <a class="nav-link <?= $activeTab === 'dashboard' ? 'active' : '' ?>" data-bs-toggle="pill"
+                        href="#v-pills-dashboard">Dashboard</a>
 
+                    <a class="nav-link <?= $activeTab === 'product' ? 'active' : '' ?>" data-bs-toggle="pill"
+                        href="#v-pills-product">Product Management</a>
+
+                    <a class="nav-link <?= $activeTab === 'inventory' ? 'active' : '' ?>" data-bs-toggle="pill"
+                        href="#v-pills-inventory">Inventory</a>
+
+                    <a class="nav-link <?= $activeTab === 'sales' ? 'active' : '' ?>" data-bs-toggle="pill"
+                        href="#v-pills-sales">Sales (POS)</a>
+
+                    <a class="nav-link <?= $activeTab === 'reports' ? 'active' : '' ?>" data-bs-toggle="pill"
+                        href="#v-pills-reports">Reports</a>
+
+                    <a class="nav-link <?= $activeTab === 'pendingaccount' ? 'active' : '' ?>" data-bs-toggle="pill"
+                        href="#v-pills-pendingaccount">Pending Account</a>
+
+                    <a class="nav-link <?= $activeTab === 'users' ? 'active' : '' ?>" data-bs-toggle="pill"
+                        href="#v-pills-users">User Management</a>
+
+                    <a class="nav-link <?= $activeTab === 'system' ? 'active' : '' ?>" data-bs-toggle="pill"
+                        href="#v-pills-system">System Settings</a>
                 </div>
             </div>
         </div>
 
         <div class="tab-content" id="v-pills-tabContent">
-            <div class="tab-pane fade show active" id="v-pills-dashboard" role="tabpanel"
-                aria-labelledby="v-pills-dashboard-tab">
+
+            <div class="tab-pane fade <?= $activeTab === 'dashboard' ? 'show active' : '' ?>" id="v-pills-dashboard">
                 <?php include __DIR__ . "/../reusablepage/dashboard.php"; ?>
             </div>
-            <div class="tab-pane fade" id="v-pills-product" role="tabpanel" aria-labelledby="v-pills-product-tab">
+            <div class="tab-pane fade <?= $activeTab === 'product' ? 'show active' : '' ?>" id="v-pills-product">
                 <?php include __DIR__ . "/../reusablepage/productmanagement.php"; ?>
             </div>
-            <div class="tab-pane fade" id="v-pills-inventory" role="tabpanel" aria-labelledby="v-pills-inventory-tab">
+            <div class="tab-pane fade <?= $activeTab === 'inventory' ? 'show active' : '' ?>" id="v-pills-inventory">
                 <?php include __DIR__ . "/../reusablepage/inventorymanagement.php"; ?>
             </div>
-            <div class="tab-pane fade" id="v-pills-sales" role="tabpanel" aria-labelledby="v-pills-sales-tab">
+            <div class="tab-pane fade <?= $activeTab === 'sales' ? 'show active' : '' ?>" id="v-pills-sales">
                 <?php include __DIR__ . "/../reusablepage/salespos.php"; ?>
             </div>
-            <div class="tab-pane fade" id="v-pills-purchase" role="tabpanel" aria-labelledby="v-pills-purchase-tab">
-                <?php include __DIR__ . "/../reusablepage/purchaserestock.php"; ?>
-            </div>
-            <div class="tab-pane fade" id="v-pills-reports" role="tabpanel" aria-labelledby="v-pills-reports-tab">
+            <div class="tab-pane fade <?= $activeTab === 'reports' ? 'show active' : '' ?>" id="v-pills-reports">
                 <?php include __DIR__ . "/../reusablepage/reports.php"; ?>
             </div>
-            <div class="tab-pane fade" id="v-pills-security" role="tabpanel" aria-labelledby="v-pills-security-tab">
-                <?php include __DIR__ . "/../reusablepage/userauthentication.php"; ?>
-            </div>
-            <div class="tab-pane fade" id="v-pills-users" role="tabpanel" aria-labelledby="v-pills-users-tab">
-                <?php include __DIR__ . "/../reusablepage/adminaddaccount.php"; ?>
-            </div>
-            <div class="tab-pane fade" id="v-pills-pendingaccount" role="tabpanel" aria-labelledby="v-pills-pendingaccount-tab">
+            <div class="tab-pane fade <?= $activeTab === 'pendingaccount' ? 'show active' : '' ?>"
+                id="v-pills-pendingaccount">
                 <?php include __DIR__ . "/../reusablepage/pendingaccountadmin.php"; ?>
             </div>
-            <div class="tab-pane fade" id="v-pills-system" role="tabpanel" aria-labelledby="v-pills-system-tab">
+            <div class="tab-pane fade <?= $activeTab === 'users' ? 'show active' : '' ?>" id="v-pills-users">
+                <?php include __DIR__ . "/../reusablepage/adminaddaccount.php"; ?>
+            </div>
+            <div class="tab-pane fade <?= $activeTab === 'system' ? 'show active' : '' ?>" id="v-pills-system">
                 <?php include __DIR__ . "/../reusablepage/systemsettings.php"; ?>
             </div>
         </div>

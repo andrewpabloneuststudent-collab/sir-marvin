@@ -108,10 +108,6 @@ include("../conn/connection_links.php");
 
                 <!-- ACTION BUTTONS -->
                 <div class="d-flex justify-content-between mt-4">
-                    <a href="dashboard?page=users" class="btn btn-secondary">
-                        ← Back
-                    </a>
-
                     <button type="submit" name="pre_addUser" class="btn btn-success px-4">
                         💾 Save User
                     </button>

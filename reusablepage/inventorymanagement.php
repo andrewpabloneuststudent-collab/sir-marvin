@@ -48,6 +48,7 @@ echo $product->renderExpiryAlert();
                     <th>Stock</th>
                     <th>Expiry</th>
                     <th>Status</th>
+                    <th>Barcode</th>
                 </tr>
             </thead>
 
@@ -94,7 +95,9 @@ echo $product->renderExpiryAlert();
                                 echo "<span style='color:green;'>In Stock</span>";
                             }
                             ?>
-                        </td </tr>
+                        </td>
+                        <td><?= $prod['barcode'] ?></td>                        
+                    </tr>
                     <?php endforeach; ?>
             </tbody>
         </table>
