@@ -8,96 +8,224 @@ require_once __DIR__ . "/../function/workingpos.php";
 
 $product = new Product($db);
 $products = $product->getProducts();
+$categories = $product->getCategories();
+$discounts = $product->getDiscounts();
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
+<!-- wePOS Inspired CSS -->
+<link rel="stylesheet" href="../css/pos_wepos.css">
 
-<head>
-    <meta charset="UTF-8">
-    <title>MMBPOS - POS</title>
-    <link rel="stylesheet" href="../css/pos.css">
-</head>
-
-<body>
-
-    <div class="container">
-
-        <!-- LEFT -->
-        <div class="products">
-
-            <div class="search">
-                <input type="text" id="searchBox" placeholder="Scan or search product...">
+<div class="wepos-wrapper" id="weposApp">
+    
+    <!-- ═══════════════ LEFT PANEL: PRODUCT GRID ═══════════════ -->
+    <div class="wepos-left">
+        
+        <!-- Header & Search -->
+        <div class="wepos-header">
+            <div class="wepos-search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="weposSearch" placeholder="Scan barcode or search products..." autocomplete="off">
+                <kbd>F2</kbd>
             </div>
-
-            <!-- CATEGORY -->
-            <div class="categories">
-                <button class="cat-btn active">All</button>
-                <button class="cat-btn">Beverages</button>
-                <button class="cat-btn">Medicine</button>
-            </div>
-
-            <!-- PRODUCTS -->
-            <div class="product-grid">
-                <?php foreach ($products as $row): ?>
-
-                    <div class="product" data-id="<?= $row['id'] ?>"
-                        data-name="<?= htmlspecialchars($row['product_name']) ?>" data-price="<?= $row['gross_price'] ?>"
-                        data-net="<?= $row['net_price'] ?>" data-discountable="<?= $row['is_discountable'] ?>"
-                        data-vatable="<?= $row['is_vatable'] ?>">
-
-                        <?php
-                        $image = !empty($row['image_product'])
-                            ? "../uploads/" . $row['image_product']
-                            : "https://via.placeholder.com/100";
-                        ?>
-
-                        <img src="<?= $image ?>" alt="product">
-
-                        <strong><?= htmlspecialchars($row['product_name']) ?></strong><br>
-                        ₱<?= number_format($row['gross_price'], 2) ?>
-
-                    </div>
-
-                <?php endforeach; ?>
-
-            </div>
-
+            <button class="wepos-btn wepos-btn-outline" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
         </div>
 
-        <!-- RIGHT -->
-        <div class="cart">
+        <!-- Categories -->
+        <div class="wepos-categories">
+            <button class="wepos-cat-btn active" onclick="weposFilterCat('All')">All</button>
+            <?php foreach ($categories as $cat): ?>
+                <button class="wepos-cat-btn" onclick="weposFilterCat('<?= htmlspecialchars($cat['category_name']) ?>')">
+                    <?= htmlspecialchars($cat['category_name']) ?>
+                </button>
+            <?php endforeach; ?>
+        </div>
 
-            <h2>Cart</h2>
-
-            <div class="cart-items" id="cartItems"></div>
-
-            <!-- DISCOUNT -->
-            <div class="discount-section">
-                <label>Discount</label>
-                <select id="discountType">
-                    <option value="none">None</option>
-                    <option value="senior">Senior</option>
-                    <option value="pwd">PWD</option>
-                </select>
-
-                <div id="customerInfo" style="display:none;">
-                    <input type="text" placeholder="Name">
-                    <input type="text" placeholder="ID Number">
-                </div>
+        <!-- Products -->
+        <div class="wepos-products-area">
+            <div class="wepos-products-grid" id="weposGrid">
+                <?php foreach ($products as $row): ?>
+                    <?php 
+                        $stock = (int)($row['stock'] ?? 0);
+                        $isOut = $stock <= 0;
+                        $image = !empty($row['imageproduct']) ? "../uploads/" . $row['imageproduct'] : "";
+                    ?>
+                    <div class="wepos-product-card <?= $isOut ? 'out-of-stock' : '' ?>"
+                         data-id="<?= $row['id'] ?>"
+                         data-name="<?= htmlspecialchars($row['product_name']) ?>"
+                         data-price="<?= $row['gross_price'] ?>"
+                         data-net="<?= $row['net_price'] ?>"
+                         data-barcode="<?= htmlspecialchars($row['barcode'] ?? '') ?>"
+                         data-category="<?= htmlspecialchars($row['category_name'] ?? 'Uncategorized') ?>"
+                         data-discountable="<?= $row['is_discountable'] ?>"
+                         data-vatable="<?= $row['is_vatable'] ?>"
+                         data-stock="<?= $stock ?>"
+                         onclick="weposAddToCart(this)">
+                        
+                        <div class="wepos-card-img">
+                            <?php if ($image): ?>
+                                <img src="<?= $image ?>" alt="">
+                            <?php else: ?>
+                                <i class="fas fa-box" style="font-size: 2rem; color: #cbd5e1;"></i>
+                            <?php endif; ?>
+                            
+                            <!-- Stock Indicator -->
+                            <?php if ($isOut): ?>
+                                <span class="wepos-stock-badge empty">Out of Stock</span>
+                            <?php else: ?>
+                                <span class="wepos-stock-badge <?= $stock <= 10 ? 'low' : '' ?>"><?= $stock ?> in stock</span>
+                            <?php endif; ?>
+                            
+                            <!-- Hover Add Overlay -->
+                            <div class="wepos-card-add-overlay">
+                                <span class="wepos-add-btn-fake"><i class="fas fa-plus"></i> Add to Cart</span>
+                            </div>
+                        </div>
+                        
+                        <div class="wepos-card-info">
+                            <div class="wepos-card-price">₱<?= number_format($row['gross_price'], 2) ?></div>
+                            <div class="wepos-card-name" title="<?= htmlspecialchars($row['product_name']) ?>">
+                                <?= htmlspecialchars($row['product_name']) ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
             </div>
-
-            <div class="total" id="totalDisplay">TOTAL: ₱0.00</div>
-
-            <button class="checkout">Checkout</button>
-            <button class="clear" onclick="clearCart()">Clear</button>
-
         </div>
 
     </div>
 
-    <script src="../js/buttonpos.js"></script>
+    <!-- ═══════════════ RIGHT PANEL: CART & CHECKOUT ═══════════════ -->
+    <div class="wepos-right">
+        
+        <!-- Customer & Tabs -->
+        <div class="wepos-cart-header">
+            <div class="wepos-customer-select">
+                <i class="fas fa-user-plus"></i>
+                <input type="text" id="weposCustomer" placeholder="Walk-in Customer">
+            </div>
+            <div class="wepos-cart-actions">
+                <button class="wepos-btn wepos-btn-icon text-danger" title="Clear Cart (F8)" onclick="weposClearCart()">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>
 
-</body>
+        <!-- Cart Items List -->
+        <div class="wepos-cart-items">
+            <table class="wepos-cart-table">
+                <thead>
+                    <tr>
+                        <th class="wepos-col-name">Product</th>
+                        <th class="wepos-col-price">Price</th>
+                        <th class="wepos-col-qty">Qty</th>
+                        <th class="wepos-col-total">Total</th>
+                        <th class="wepos-col-action"></th>
+                    </tr>
+                </thead>
+                <tbody id="weposCartBody">
+                    <tr>
+                        <td colspan="5" class="wepos-empty-cart">
+                            <i class="fas fa-shopping-cart fa-3x mb-3 text-muted" style="opacity: 0.3;"></i>
+                            <p>Cart is empty</p>
+                            <small>Scan barcode or click products to add</small>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-</html>
+        <!-- Calculations & Checkout -->
+        <div class="wepos-checkout-area">
+            
+            <!-- Discount Selection -->
+            <div class="wepos-discount-row">
+                <div class="wepos-discount-label"><i class="fas fa-tags text-primary"></i> Apply Discount</div>
+                <select id="weposDiscount" class="wepos-select" onchange="weposUpdateCart()">
+                    <?php foreach ($discounts as $d): ?>
+                        <option value="<?= $d['id'] ?>" 
+                                data-rate="<?= $d['discount_rate'] ?>" 
+                                data-exempt="<?= $d['is_vat_exempt'] ?>"
+                                <?= $d['discount_rate'] == 0 ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($d['discount_name']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <!-- Math Breakdown -->
+            <div class="wepos-calc-box">
+                <div class="wepos-calc-row">
+                    <span>Subtotal</span>
+                    <span id="calcSub">₱0.00</span>
+                </div>
+                <div class="wepos-calc-row text-danger" id="rowDiscount" style="display:none;">
+                    <span>Discount (<span id="calcDiscountLabel">0%</span>)</span>
+                    <span id="calcDiscount">-₱0.00</span>
+                </div>
+                <div class="wepos-calc-row text-muted" id="rowVatExempt" style="display:none;">
+                    <span>VAT Exemption</span>
+                    <span id="calcVatExempt">-₱0.00</span>
+                </div>
+                <div class="wepos-calc-row text-muted">
+                    <span>VAT (12%)</span>
+                    <span id="calcVat">₱0.00</span>
+                </div>
+                <div class="wepos-calc-row total-row">
+                    <span>Total Due</span>
+                    <span class="wepos-grand-total" id="calcTotal">₱0.00</span>
+                </div>
+            </div>
+
+            <!-- Pay Button -->
+            <button class="wepos-pay-btn" id="weposPayBtn" onclick="weposOpenPayModal()" disabled>
+                <span>Pay Now</span>
+                <span class="wepos-pay-amount" id="btnTotalAmount">₱0.00</span>
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ═══════════════ PAYMENT MODAL ═══════════════ -->
+<div class="wepos-modal-overlay" id="weposPayModal" style="display:none;" onclick="weposClosePayModal(event)">
+    <div class="wepos-modal" onclick="event.stopPropagation()">
+        <div class="wepos-modal-head">
+            <h5>Complete Payment</h5>
+            <button onclick="weposClosePayModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="wepos-modal-body">
+            
+            <div class="wepos-modal-totals">
+                <div class="wepos-modal-amt">Amount Due: <strong class="text-primary" id="modalAmountDue">₱0.00</strong></div>
+            </div>
+
+            <div class="wepos-pay-methods">
+                <button class="wepos-pay-method active" onclick="weposSelectMethod(this, 'Cash')"><i class="fas fa-money-bill-wave"></i> Cash</button>
+                <button class="wepos-pay-method" onclick="weposSelectMethod(this, 'Card')"><i class="fas fa-credit-card"></i> Card</button>
+                <button class="wepos-pay-method" onclick="weposSelectMethod(this, 'GCash')"><i class="fas fa-mobile-alt"></i> GCash</button>
+            </div>
+
+            <div class="wepos-tendered-box">
+                <label>Amount Tendered (₱)</label>
+                <input type="number" id="weposTendered" class="wepos-input-lg" placeholder="0.00" oninput="weposCalcChange()" autofocus>
+                
+                <div class="wepos-quick-cash" id="weposQuickCash"></div>
+            </div>
+
+            <div class="wepos-change-box" id="weposChangeBox" style="display:none;">
+                <span>Change:</span>
+                <strong id="modalChange">₱0.00</strong>
+            </div>
+
+        </div>
+        <div class="wepos-modal-foot">
+            <button class="wepos-btn wepos-btn-outline" onclick="weposClosePayModal()">Cancel</button>
+            <button class="wepos-btn wepos-btn-primary" id="modalConfirmBtn" onclick="weposSubmitTransaction()" disabled>Confirm Payment</button>
+        </div>
+    </div>
+</div>
+
+<script src="../js/pos_wepos.js"></script>

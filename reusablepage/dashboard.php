@@ -119,10 +119,8 @@ date_default_timezone_set('Asia/Manila');
                 <tr>
                   <th>Ref ID</th>
                   <th>Date / Time</th>
-                  <th>Amount</th>
-                  <th>Discount</th>
-                  <th>Net</th>
-                  <th>Method</th>
+                  <th>Customer</th>
+                  <th>Total Amount</th>
                 </tr>
               </thead>
               <tbody>
@@ -130,10 +128,8 @@ date_default_timezone_set('Asia/Manila');
                   <tr>
                     <td class="ref-id">#<?php echo str_pad($tx['id'], 6, '0', STR_PAD_LEFT); ?></td>
                     <td><?php echo date('M d, H:i', strtotime($tx['created_at'])); ?></td>
-                    <td>₱<?php echo number_format($tx['total_amount'], 2); ?></td>
-                    <td class="amount-neg">-₱<?php echo number_format($tx['discount_amount'], 2); ?></td>
-                    <td class="amount-pos">₱<?php echo number_format($tx['net_amount'], 2); ?></td>
-                    <td><span class="pill pill-gray"><?php echo htmlspecialchars($tx['payment_method']); ?></span></td>
+                    <td><?php echo htmlspecialchars($tx['customer_name'] ?? 'Guest'); ?></td>
+                    <td class="amount-pos">₱<?php echo number_format($tx['total_amount'], 2); ?></td>
                   </tr>
                 <?php endforeach; ?>
               </tbody>
