@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . "/../conn/database.php";
-require_once __DIR__ . "/../function/dashboard.php";
+// UPDATE_ID: 11:01:45
+require_once "../conn/database.php";
+require_once "../function/dashboard.php";
 
 use Classes\DashboardManager;
 
