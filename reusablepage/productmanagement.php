@@ -55,7 +55,8 @@ if ($product->addProduct()) {
                     <th>Product</th>
                     <th>Category</th>
                     <th>Classification</th>
-                    <th>Price</th>
+                    <th>Net Price</th>
+                    <th>Gross Price</th>
                     <th>Stock</th>
                     <th>Expiry</th>
                     <th>Barcode</th>
@@ -70,7 +71,8 @@ if ($product->addProduct()) {
                         <td><?= $prod['product_name'] ?></td>
                         <td><?= $prod['category_name'] ?? 'N/A' ?></td>
                         <td><?= $prod['classification_name'] ?? 'N/A' ?></td>
-                        <td>₱ <?= number_format($prod['price'], 2) ?></td>
+                        <td>₱ <?= number_format($prod['net_price'], 2) ?></td>
+                        <td>₱ <?= number_format($prod['gross_price'], 2) ?></td>
                         <td><?= $prod['quantity'] ?></td>
                         <td><?= $prod['expiry_date'] ?? 'N/A' ?></td>
                         <td><?= $prod['barcode'] ?></td>

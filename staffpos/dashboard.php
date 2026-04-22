@@ -33,7 +33,7 @@ $user->pre_addUser();
 
 </head>
 
-<body class="d-flex flex-column min-vh-100">
+<body>
 
     <?php include __DIR__ . "/../reusablepage/header.php"; ?>
 
@@ -43,9 +43,7 @@ $user->pre_addUser();
     </main>
 
     <!-- FOOTER -->
-   <footer class="text-center" style="padding: 4px 0;">
-    <?php include __DIR__ . "/../reusablepage/footer.php"; ?>
-</footer>
+
 
 </body>
 
