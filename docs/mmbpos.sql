@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 13, 2026 at 07:45 AM
+-- Generation Time: Apr 22, 2026 at 12:26 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -24,6 +24,29 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `discounts`
+--
+
+CREATE TABLE `discounts` (
+  `id` int(11) NOT NULL,
+  `discount_name` varchar(50) DEFAULT NULL,
+  `discount_rate` decimal(5,2) DEFAULT NULL,
+  `is_vat_exempt` tinyint(1) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `discounts`
+--
+
+INSERT INTO `discounts` (`id`, `discount_name`, `discount_rate`, `is_vat_exempt`) VALUES
+(1, 'None', 0.00, 0),
+(2, 'Senior Citizen', 0.20, 1),
+(3, 'PWD', 0.20, 1),
+(4, 'Promo 10%', 0.10, 0);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `inventory`
 --
 
@@ -39,10 +62,10 @@ CREATE TABLE `inventory` (
 --
 
 INSERT INTO `inventory` (`id`, `product_id`, `quantity`, `expiry_date`) VALUES
-(1, 1, 511, '2026-12-31'),
-(2, 2, 121, '2028-08-11'),
-(8, 12, 1, '2026-04-30'),
-(9, 16, 21, '2026-04-12');
+(9, 18, 23, '2026-05-09'),
+(10, 19, 232, '2026-04-22'),
+(11, 22, 321, '2026-05-09'),
+(12, 23, 220, '2026-05-09');
 
 -- --------------------------------------------------------
 
@@ -60,6 +83,43 @@ CREATE TABLE `login_attempts` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `pre_approved_users`
+--
+
+CREATE TABLE `pre_approved_users` (
+  `id` int(11) NOT NULL,
+  `username` varchar(100) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
+  `void_password` varchar(255) DEFAULT NULL,
+  `position` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pre_approved_users_info`
+--
+
+CREATE TABLE `pre_approved_users_info` (
+  `id` int(11) NOT NULL,
+  `pre_user_id` int(11) NOT NULL,
+  `firstname` varchar(100) NOT NULL,
+  `middlename` varchar(100) DEFAULT NULL,
+  `lastname` varchar(100) NOT NULL,
+  `age` int(11) NOT NULL,
+  `street` varchar(100) NOT NULL,
+  `barangay` varchar(100) NOT NULL,
+  `city` varchar(100) NOT NULL,
+  `province` varchar(100) NOT NULL,
+  `country` varchar(100) NOT NULL,
+  `email` varchar(155) NOT NULL,
+  `contactnumber` varchar(20) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `products`
 --
 
@@ -70,18 +130,20 @@ CREATE TABLE `products` (
   `category_id` int(11) DEFAULT NULL,
   `classification_id` int(11) DEFAULT NULL,
   `unit` varchar(50) DEFAULT NULL,
-  `price` decimal(10,2) NOT NULL
+  `net_price` decimal(10,2) NOT NULL,
+  `gross_price` decimal(10,2) NOT NULL,
+  `imageproduct` varchar(500) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `products`
 --
 
-INSERT INTO `products` (`id`, `product_name`, `barcode`, `category_id`, `classification_id`, `unit`, `price`) VALUES
-(1, 'Coca Cola', '123456789', 1, 1, 'Bottle', 25.00),
-(2, 'C2', '155665666566565', 1, 1, '144', 13.00),
-(12, 'Cobras', '123321123', 1, 1, 'Bottle', 16.00),
-(16, 'Biogesic 500 mg Tablet', '123455456', 3, 2, 'Tablet', 21.00);
+INSERT INTO `products` (`id`, `product_name`, `barcode`, `category_id`, `classification_id`, `unit`, `net_price`, `gross_price`, `imageproduct`) VALUES
+(18, 'Sister (Day Maxi)', '155665666566565', 7, 1, 'Tablet', 32.50, 36.40, ''),
+(19, 'Biogesic 500 mg Tablet', '23769039483_138630626592', 7, 1, 'Tablet', 33.55, 37.58, ''),
+(22, 'Coca Cola', '1556656665665654234', 12, 8, '1 Unit', 56.50, 63.28, ''),
+(23, 'Sister PInk', '4806506318832', 6, 9, '1 Pouch', 31.50, 35.28, '');
 
 -- --------------------------------------------------------
 
@@ -148,6 +210,37 @@ INSERT INTO `product_classifications` (`id`, `classification_name`, `is_discount
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `transactions`
+--
+
+CREATE TABLE `transactions` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `discount_id` int(11) DEFAULT NULL,
+  `customer_name` varchar(100) DEFAULT NULL,
+  `customer_id` varchar(100) DEFAULT NULL,
+  `total_amount` decimal(10,2) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `transaction_items`
+--
+
+CREATE TABLE `transaction_items` (
+  `id` int(11) NOT NULL,
+  `transaction_id` int(11) DEFAULT NULL,
+  `product_id` int(11) DEFAULT NULL,
+  `quantity` int(11) DEFAULT NULL,
+  `price` decimal(10,2) DEFAULT NULL,
+  `subtotal` decimal(10,2) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -155,6 +248,7 @@ CREATE TABLE `users` (
   `id` int(11) NOT NULL,
   `username` varchar(155) NOT NULL,
   `password` varchar(255) NOT NULL,
+  `void_password` varchar(255) DEFAULT NULL,
   `position` varchar(20) DEFAULT NULL,
   `failed_attempts` int(11) DEFAULT 0,
   `last_attempt` timestamp NULL DEFAULT NULL
@@ -164,11 +258,10 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `password`, `position`, `failed_attempts`, `last_attempt`) VALUES
-(1, 'andrew', '$2y$10$d.pNrIKVs0trqnlcG.8IH.eRqC.1QdWmdwcDh59DJvf//fQdRxpGa', 'Owner', 0, NULL),
-(2, 'ivhan', '$2y$10$gFAk.Z7k13eIpr8hrf0EWOTB92vgXJMxS43wYwdT/tS1yF5LQadj6', 'Owner', 0, NULL),
-(3, 'admin', '$2y$10$81n/UDhkSxRSZMceR4Izu.hgvXQLAUys.YQVEMFjwNvIT74fiCRk2', 'Owner', 0, NULL),
-(4, 'staff1', '$2y$10$vNfSsV4iU.D/AEzis7swm.6CK.H4U/rP1j9vCZs2Psk.Pcs2YKc7W', 'Staff', 0, NULL);
+INSERT INTO `users` (`id`, `username`, `password`, `void_password`, `position`, `failed_attempts`, `last_attempt`) VALUES
+(1, 'andrew_owner', '$2y$10$R/zC.BE3sfF8BnQrO9wdz.mdNf7GEdWTkD/l03IBJWkjSzMdf.Ak6', '3845', 'Owner', 0, '2026-04-22 08:10:00'),
+(2, 'andrew_admin', '$2y$10$jFdioV39ma7aQg7rCou3VOdvsCXVWjiNZYOkZ43Y49XHy/1mfrPuu', '4067', 'Admin', 0, NULL),
+(3, 'andrew_staff', '$2y$10$H9ZeH1DIddToXpklOPtC8ugXzUfeX/nUT5JLR7P7tS0Fuh1QV2Va2', NULL, 'Staff', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -197,14 +290,19 @@ CREATE TABLE `users_info` (
 --
 
 INSERT INTO `users_info` (`id`, `user_id`, `firstname`, `middlename`, `lastname`, `age`, `street`, `barangay`, `city`, `province`, `country`, `email`, `contactnumber`) VALUES
-(1, 1, 'Andreww', 'G', 'Pablo', 22, 'Sample Street', 'Poblacion', 'Bulacan', 'Bulacan', 'Philippines', 'andrew@example.com', '09123456789'),
-(2, 2, 'Ivhan Grace', 'Aguilar', 'Pablo', 25, 'N/A', '', 'Jaen', 'Nueva Ecija', 'Philippines', 'andrewpablo2005@gmail.com', '09651800675'),
-(3, 3, 'admin', 'Gonzales', 'admin', 0, 'N/A', '', 'JAEN (NUEVA ECIJA)', '', 'Philippines', 'andrewpablo2005@gmail.com', ''),
-(4, 4, 'Andrew', 'Gonzales', 'Pablo', 0, 'N/A', '', 'JAEN (NUEVA ECIJA)', '', 'Philippines', 'andrewpablo2005@gmail.com', '');
+(1, 1, 'Andrew', 'Gonzales', 'Pablo', 21, 'N/A', 'Niyugan', 'JAEN (NUEVA ECIJA)', 'Nueva Ecija', 'Philippines', 'andrewpablo2005@gmail.com', '09651800675'),
+(2, 2, 'Andrew', 'Gonzales', 'Pablo', 20, 'N/A', 'San Vicente', 'JAEN (NUEVA ECIJA)', 'Nueva Ecija', 'Philippines', 'andrewpablo2005@gmail.com', '09651800675'),
+(3, 3, 'Andrew', 'Gonzales', 'Pablo', 20, 'N/A', 'San Vicente', 'JAEN (NUEVA ECIJA)', 'Nueva Ecija', 'Philippines', 'andrewpablo2005@gmail.com', '09651800675');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `discounts`
+--
+ALTER TABLE `discounts`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `inventory`
@@ -218,6 +316,19 @@ ALTER TABLE `inventory`
 --
 ALTER TABLE `login_attempts`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `pre_approved_users`
+--
+ALTER TABLE `pre_approved_users`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `pre_approved_users_info`
+--
+ALTER TABLE `pre_approved_users_info`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_pre_users_info` (`pre_user_id`);
 
 --
 -- Indexes for table `products`
@@ -244,6 +355,21 @@ ALTER TABLE `product_classifications`
   ADD UNIQUE KEY `classification_name` (`classification_name`);
 
 --
+-- Indexes for table `transactions`
+--
+ALTER TABLE `transactions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `discount_id` (`discount_id`);
+
+--
+-- Indexes for table `transaction_items`
+--
+ALTER TABLE `transaction_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `transaction_id` (`transaction_id`),
+  ADD KEY `product_id` (`product_id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -261,22 +387,40 @@ ALTER TABLE `users_info`
 --
 
 --
+-- AUTO_INCREMENT for table `discounts`
+--
+ALTER TABLE `discounts`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT for table `inventory`
 --
 ALTER TABLE `inventory`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `login_attempts`
 --
 ALTER TABLE `login_attempts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `pre_approved_users`
+--
+ALTER TABLE `pre_approved_users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `pre_approved_users_info`
+--
+ALTER TABLE `pre_approved_users_info`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `product_categories`
@@ -291,16 +435,28 @@ ALTER TABLE `product_classifications`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
+-- AUTO_INCREMENT for table `transactions`
+--
+ALTER TABLE `transactions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `transaction_items`
+--
+ALTER TABLE `transaction_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `users_info`
 --
 ALTER TABLE `users_info`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Constraints for dumped tables
@@ -313,11 +469,30 @@ ALTER TABLE `inventory`
   ADD CONSTRAINT `inventory_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Constraints for table `pre_approved_users_info`
+--
+ALTER TABLE `pre_approved_users_info`
+  ADD CONSTRAINT `fk_pre_users_info` FOREIGN KEY (`pre_user_id`) REFERENCES `pre_approved_users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Constraints for table `products`
 --
 ALTER TABLE `products`
   ADD CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `product_categories` (`id`),
   ADD CONSTRAINT `products_ibfk_2` FOREIGN KEY (`classification_id`) REFERENCES `product_classifications` (`id`);
+
+--
+-- Constraints for table `transactions`
+--
+ALTER TABLE `transactions`
+  ADD CONSTRAINT `transactions_ibfk_1` FOREIGN KEY (`discount_id`) REFERENCES `discounts` (`id`);
+
+--
+-- Constraints for table `transaction_items`
+--
+ALTER TABLE `transaction_items`
+  ADD CONSTRAINT `transaction_items_ibfk_1` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`),
+  ADD CONSTRAINT `transaction_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`);
 
 --
 -- Constraints for table `users_info`

@@ -12,7 +12,8 @@ class ProductManagement
     public int $category_id;
     public int $classification_id;
     public string $unit;
-    public float $price;
+    public float $net_price;
+    public float $gross_price;
     public int $quantity;
     public string $expiry_date;
 
@@ -33,7 +34,8 @@ class ProductManagement
             $this->category_id = (int) ($_POST['category_id'] ?? 0);
             $this->classification_id = (int) ($_POST['classification_id'] ?? 0);
             $this->unit = $_POST['unit'] ?? '';
-            $this->price = (float) ($_POST['price'] ?? 0);
+            $this->net_price = (float) ($_POST['net_price'] ?? 0);
+            $this->gross_price = $this->net_price * 1.12;
             $this->quantity = (int) ($_POST['quantity'] ?? 0);
             $this->expiry_date = $_POST['expiry_date'] ?? '';
         }
@@ -50,10 +52,10 @@ class ProductManagement
 
                 // ➕ INSERT PRODUCT
                 $stmt = $this->con->prepare("
-                    INSERT INTO products 
-                    (product_name, barcode, category_id, classification_id, unit, price)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                ");
+                INSERT INTO products 
+                (product_name, barcode, category_id, classification_id, unit, net_price, gross_price)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ");
 
                 $stmt->execute([
                     $this->product_name,
@@ -61,7 +63,8 @@ class ProductManagement
                     $this->category_id,
                     $this->classification_id,
                     $this->unit,
-                    $this->price
+                    $this->net_price,
+                    $this->gross_price
                 ]);
 
                 $productId = $this->con->lastInsertId();
@@ -101,7 +104,8 @@ class ProductManagement
             SELECT 
                 p.id,
                 p.product_name,
-                p.price,
+                p.net_price,
+                p.gross_price,
                 pc.category_name,
                 p.barcode,
                 p.unit,
@@ -185,7 +189,7 @@ class ProductManagement
                 $stmt = $this->con->prepare("
                 UPDATE products 
                 SET product_name = ?, barcode = ?, category_id = ?, 
-                    classification_id = ?, unit = ?, price = ?
+                classification_id = ?, unit = ?, net_price = ?, gross_price = ?
                 WHERE id = ?
             ");
 
@@ -195,7 +199,8 @@ class ProductManagement
                     $this->category_id,
                     $this->classification_id,
                     $this->unit,
-                    $this->price,
+                    $this->net_price,
+                    $this->gross_price,
                     $this->id
                 ]);
 
