@@ -8,11 +8,12 @@ class Product {
         $this->conn = $db;
     }
 
-    // ✅ GET PRODUCTS with category name, stock, and barcode
+    // ✅ GET PRODUCTS with category name, stock, barcode and category-level discount flags
     public function getProducts() {
         $sql = "SELECT p.*, 
                     pc.category_name,
-                    pcl.classification_name, pcl.is_discountable, pcl.is_vatable,
+                    pc.has_vat, pc.senior_discount, pc.pwd_discount,
+                    pcl.classification_name,
                     COALESCE(SUM(i.quantity), 0) AS stock
                 FROM products p
                 JOIN product_classifications pcl ON p.classification_id = pcl.id
