@@ -1,8 +1,7 @@
-let weposCart = {};
+﻿let weposCart = {};
 let barcodeBuffer = '';
 let barcodeTimer = null;
 let currentPayMethod = 'Cash';
-let pendingOverride = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     weposSetupScanner();
@@ -11,12 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
     weposUpdateCart();
 });
 
-// ═════ BARCODE SCANNER ═════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉ BARCODE SCANNER ΓòÉΓòÉΓòÉΓòÉΓòÉ
 function weposSetupScanner() {
     document.addEventListener('keypress', function(e) {
         const active = document.activeElement;
         const isSearch = active && active.id === 'weposSearch';
-        const isModalInput = active && (active.id === 'weposTendered' || active.id === 'weposCustomer' || active.id === 'overrideReason' || active.id === 'overrideUsername' || active.id === 'overridePassword' || active.id === 'overridePercent');
+        const isModalInput = active && (active.id === 'weposTendered' || active.id === 'weposCustomer');
 
         if (isModalInput) return;
 
@@ -59,7 +58,7 @@ function weposFindAndAdd(code) {
     return false;
 }
 
-// ═════ SEARCH & FILTER ═════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉ SEARCH & FILTER ΓòÉΓòÉΓòÉΓòÉΓòÉ
 function weposSetupSearch() {
     const search = document.getElementById('weposSearch');
     if (search) {
@@ -89,7 +88,7 @@ function weposFilterCat(category) {
     if (search) search.value = '';
 }
 
-// ═════ CART LOGIC ═════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉ CART LOGIC ΓòÉΓòÉΓòÉΓòÉΓòÉ
 function weposAddToCart(cardEl) {
     const id = cardEl.dataset.id;
     const stock = parseInt(cardEl.dataset.stock) || 0;
@@ -112,15 +111,9 @@ function weposAddToCart(cardEl) {
             price: parseFloat(cardEl.dataset.price),
             net: parseFloat(cardEl.dataset.net || cardEl.dataset.price),
             qty: 1,
-            // Category-based flags (auto-apply from DB)
-            hasVat: cardEl.dataset.hasVat === '1',
-            senior: cardEl.dataset.senior === '1',
-            pwd: cardEl.dataset.pwd === '1',
-            stock: stock,
-            // Override state (set during checkout)
-            override: false,
-            overrideRate: 0,
-            overrideApprover: null
+            discountable: cardEl.dataset.discountable === '1',
+            vatable: cardEl.dataset.vatable === '1',
+            stock: stock
         };
     }
 
@@ -158,44 +151,7 @@ function weposClearCart() {
     }
 }
 
-// ═════ MATH & DISCOUNT CALCULATION ═════
-function weposCalcItem(item, dRate, isVatExempt) {
-    let gross = item.price * item.qty;
-    let vatExempt = 0;
-    let discount = 0;
-    let vatAmount = 0;
-
-    // Manual override beats everything
-    if (item.override && item.overrideRate > 0) {
-        let base = gross;
-        if (item.hasVat) {
-            const net = gross / 1.12;
-            vatExempt = gross - net;
-            base = net;
-        }
-        discount = base * item.overrideRate;
-        return { gross, vatExempt, discount, vatAmount: 0, final: gross - vatExempt - discount };
-    }
-
-    // Auto discount from category flags
-    const isSenior = isVatExempt && item.senior;
-    const isPwd = isVatExempt && item.pwd;
-
-    if (isSenior || isPwd) {
-        if (item.hasVat) {
-            const net = gross / 1.12;
-            vatExempt = gross - net;
-            gross = net;
-        }
-        discount = gross * dRate;
-        vatAmount = 0;
-    } else if (item.hasVat) {
-        vatAmount = gross - (gross / 1.12);
-    }
-
-    return { gross: item.price * item.qty, vatExempt, discount, vatAmount, final: (item.price * item.qty) - vatExempt - discount };
-}
-
+// ΓòÉΓòÉΓòÉΓòÉΓòÉ MATH & DISCOUNT CALCULATION ΓòÉΓòÉΓòÉΓòÉΓòÉ
 function weposUpdateCart() {
     const tbody = document.getElementById('weposCartBody');
     const entries = Object.values(weposCart);
@@ -214,37 +170,18 @@ function weposUpdateCart() {
         return;
     }
 
-    // Get discount info
-    const discountSelect = document.getElementById('weposDiscount');
-    const selOpt = discountSelect.options[discountSelect.selectedIndex];
-    const dRate = parseFloat(selOpt.dataset.rate) || 0;
-    const isVatExempt = selOpt.dataset.exempt === '1';
-
     let html = '';
     let rawSubtotal = 0;
-    let totalDiscount = 0;
-    let totalVatExemption = 0;
-    let finalVat = 0;
 
     entries.forEach(item => {
         const lineTotal = item.price * item.qty;
         rawSubtotal += lineTotal;
-
-        const c = weposCalcItem(item, dRate, isVatExempt);
-        totalDiscount += c.discount;
-        totalVatExemption += c.vatExempt;
-        finalVat += c.vatAmount;
-
-        const overrideBadge = item.override
-            ? ` <span style="font-size:10px; color:#00a32a; font-weight:600;">✓ ${(item.overrideRate*100).toFixed(0)}% OFF</span>`
-            : '';
-
         html += `
             <tr class="wepos-cart-row">
                 <td class="wepos-col-name">
-                    <div class="wepos-cart-item-name" title="${item.name}">${item.name}${overrideBadge}</div>
+                    <div class="wepos-cart-item-name" title="${item.name}">${item.name}</div>
                 </td>
-                <td class="wepos-col-price text-muted">₱${item.price.toFixed(2)}</td>
+                <td class="wepos-col-price text-muted">Γé▒${item.price.toFixed(2)}</td>
                 <td class="wepos-col-qty">
                     <div class="wepos-qty-ctrl">
                         <button onclick="weposUpdateQty('${item.id}', -1)"><i class="fas fa-minus"></i></button>
@@ -252,7 +189,7 @@ function weposUpdateCart() {
                         <button onclick="weposUpdateQty('${item.id}', 1)"><i class="fas fa-plus"></i></button>
                     </div>
                 </td>
-                <td class="wepos-col-total">₱${c.final.toFixed(2)}</td>
+                <td class="wepos-col-total">Γé▒${lineTotal.toFixed(2)}</td>
                 <td class="wepos-col-action">
                     <button class="wepos-btn-icon text-danger" onclick="weposRemoveItem('${item.id}')"><i class="fas fa-times"></i></button>
                 </td>
@@ -260,20 +197,75 @@ function weposUpdateCart() {
     });
 
     tbody.innerHTML = html;
+    
+    // --- DISCOUNT LOGIC (SENIOR / PWD / REGULAR) ---
+    const discountSelect = document.getElementById('weposDiscount');
+    const selOpt = discountSelect.options[discountSelect.selectedIndex];
+    const dRate = parseFloat(selOpt.dataset.rate) || 0;
+    const isVatExempt = selOpt.dataset.exempt === '1';
 
-    const finalTotal = rawSubtotal - totalVatExemption - totalDiscount;
+    let totalDiscount = 0;
+    let totalVatExemption = 0;
+    let finalVat = 0;
+    let finalTotal = 0;
+
+    entries.forEach(item => {
+        let itemGross = item.price * item.qty;
+        let itemNet = item.net * item.qty; // Assuming net is price without VAT
+        
+        let itemDiscount = 0;
+        let itemVatExemption = 0;
+        let itemVatToPay = 0;
+
+        // If VAT Exempt (Senior/PWD)
+        if (isVatExempt) {
+            // Remove VAT for VATable items
+            if (item.vatable) {
+                // Philippine standard: Gross / 1.12 = Net
+                let properNet = itemGross / 1.12;
+                itemVatExemption = itemGross - properNet;
+                itemGross = properNet; // Base price for discount is now the Net price
+            }
+
+            // Apply 20% discount ONLY if the item is discountable (e.g. medicine)
+            if (item.discountable && dRate > 0) {
+                itemDiscount = itemGross * dRate;
+            }
+            
+            // Seniors don't pay VAT on eligible items
+            itemVatToPay = 0; 
+        } 
+        // Regular Discount (e.g. Promo 10%)
+        else {
+            if (item.discountable && dRate > 0) {
+                itemDiscount = itemGross * dRate;
+            }
+            // Calculate standard 12% VAT on the remaining amount if vatable
+            if (item.vatable) {
+                let discountedGross = itemGross - itemDiscount;
+                itemVatToPay = discountedGross - (discountedGross / 1.12);
+            }
+        }
+
+        totalDiscount += itemDiscount;
+        totalVatExemption += itemVatExemption;
+        finalVat += itemVatToPay;
+    });
+
+    finalTotal = rawSubtotal - totalVatExemption - totalDiscount;
+
     weposSetTotals(rawSubtotal, totalDiscount, dRate, totalVatExemption, finalVat, finalTotal);
     document.getElementById('weposPayBtn').disabled = false;
 }
 
 function weposSetTotals(sub, disc, dRate, vatExempt, vat, total) {
-    document.getElementById('calcSub').textContent = '₱' + sub.toFixed(2);
+    document.getElementById('calcSub').textContent = 'Γé▒' + sub.toFixed(2);
     
     const rowDisc = document.getElementById('rowDiscount');
     if (disc > 0) {
         rowDisc.style.display = 'flex';
         document.getElementById('calcDiscountLabel').textContent = (dRate * 100).toFixed(0) + '%';
-        document.getElementById('calcDiscount').textContent = '-₱' + disc.toFixed(2);
+        document.getElementById('calcDiscount').textContent = '-Γé▒' + disc.toFixed(2);
     } else {
         rowDisc.style.display = 'none';
     }
@@ -281,17 +273,17 @@ function weposSetTotals(sub, disc, dRate, vatExempt, vat, total) {
     const rowVatEx = document.getElementById('rowVatExempt');
     if (vatExempt > 0) {
         rowVatEx.style.display = 'flex';
-        document.getElementById('calcVatExempt').textContent = '-₱' + vatExempt.toFixed(2);
+        document.getElementById('calcVatExempt').textContent = '-Γé▒' + vatExempt.toFixed(2);
     } else {
         rowVatEx.style.display = 'none';
     }
 
-    document.getElementById('calcVat').textContent = '₱' + vat.toFixed(2);
-    document.getElementById('calcTotal').textContent = '₱' + total.toFixed(2);
-    document.getElementById('btnTotalAmount').textContent = '₱' + total.toFixed(2);
+    document.getElementById('calcVat').textContent = 'Γé▒' + vat.toFixed(2);
+    document.getElementById('calcTotal').textContent = 'Γé▒' + total.toFixed(2);
+    document.getElementById('btnTotalAmount').textContent = 'Γé▒' + total.toFixed(2);
 }
 
-// ═════ KEYBOARD SHORTCUTS ═════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉ KEYBOARD SHORTCUTS ΓòÉΓòÉΓòÉΓòÉΓòÉ
 function weposSetupKeyboard() {
     document.addEventListener('keydown', function(e) {
         if (e.key === 'F2') {
@@ -308,24 +300,20 @@ function weposSetupKeyboard() {
         }
         if (e.key === 'Escape') {
             weposClosePayModal();
-            weposCancelOverride();
         }
     });
 }
 
-// ═════ PAYMENT MODAL ═════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉ PAYMENT MODAL ΓòÉΓòÉΓòÉΓòÉΓòÉ
 function weposOpenPayModal() {
     if (Object.keys(weposCart).length === 0) return;
-    const totalText = document.getElementById('btnTotalAmount').textContent.replace('₱', '');
+    const totalText = document.getElementById('btnTotalAmount').textContent.replace('Γé▒', '');
     const total = parseFloat(totalText);
     
-    document.getElementById('modalAmountDue').textContent = '₱' + total.toFixed(2);
+    document.getElementById('modalAmountDue').textContent = 'Γé▒' + total.toFixed(2);
     document.getElementById('weposTendered').value = '';
     document.getElementById('weposChangeBox').style.display = 'none';
     document.getElementById('modalConfirmBtn').disabled = true;
-
-    // Render checkout items with override buttons
-    weposRenderCheckoutItems();
 
     weposGenerateQuickCash(total);
     document.getElementById('weposPayModal').style.display = 'flex';
@@ -337,143 +325,6 @@ function weposClosePayModal(e) {
     document.getElementById('weposPayModal').style.display = 'none';
 }
 
-// ═════ CHECKOUT ITEMS WITH OVERRIDE ═════
-function weposRenderCheckoutItems() {
-    const container = document.getElementById('weposCheckoutItems');
-    if (!container) return;
-
-    const entries = Object.values(weposCart);
-    const discountSelect = document.getElementById('weposDiscount');
-    const selOpt = discountSelect.options[discountSelect.selectedIndex];
-    const dRate = parseFloat(selOpt.dataset.rate) || 0;
-    const isVatExempt = selOpt.dataset.exempt === '1';
-
-    let html = '';
-    entries.forEach(item => {
-        const c = weposCalcItem(item, dRate, isVatExempt);
-        const overrideLabel = item.override
-            ? `<span style="color:#00a32a; font-weight:600;">${(item.overrideRate*100).toFixed(0)}% OFF (by ${item.overrideApprover})</span>`
-            : '';
-        
-        html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-bottom:1px solid #f0f0f1;">
-            <div style="flex:1; min-width:0;">
-                <div style="font-weight:500; font-size:13px;">${item.name}</div>
-                <div style="font-size:12px; color:#50575e;">${item.qty} × ₱${item.price.toFixed(2)} = ₱${c.final.toFixed(2)} ${overrideLabel}</div>
-            </div>
-            <button onclick="weposRequestOverride('${item.id}')" 
-                    style="padding:4px 10px; font-size:11px; border-radius:3px; border:1px solid ${item.override ? '#00a32a' : '#8c8f94'}; background:${item.override ? '#f0fdf4' : '#f6f7f7'}; color:${item.override ? '#00a32a' : '#50575e'}; cursor:pointer; white-space:nowrap;">
-                <i class="fas fa-tag"></i> ${item.override ? 'Remove' : 'Override'}
-            </button>
-        </div>`;
-    });
-
-    container.innerHTML = html;
-    container.style.display = entries.length > 0 ? 'block' : 'none';
-}
-
-// ═════ OVERRIDE FLOW ═════
-function weposRequestOverride(cartId) {
-    const item = weposCart[cartId];
-    if (!item) return;
-
-    // If already overridden, remove it
-    if (item.override) {
-        if (confirm('Remove the override discount from "' + item.name + '"?')) {
-            item.override = false;
-            item.overrideRate = 0;
-            item.overrideApprover = null;
-            weposRenderCheckoutItems();
-            weposUpdateCart();
-            // Refresh modal amount
-            const totalText = document.getElementById('calcTotal').textContent.replace('₱', '');
-            document.getElementById('modalAmountDue').textContent = '₱' + parseFloat(totalText).toFixed(2);
-        }
-        return;
-    }
-
-    // Open the PIN modal
-    pendingOverride = { cartId };
-    document.getElementById('overrideItemPreview').innerHTML =
-        `<strong>${item.name}</strong> — ₱${(item.price * item.qty).toFixed(2)} (${item.qty} × ₱${item.price.toFixed(2)})`;
-    document.getElementById('overrideReason').value = '';
-    document.getElementById('overrideUsername').value = '';
-    document.getElementById('overridePassword').value = '';
-    document.getElementById('overridePercent').value = 12;
-    document.getElementById('overridePinError').style.display = 'none';
-    document.getElementById('overridePinModal').style.display = 'flex';
-}
-
-function weposCancelOverride() {
-    pendingOverride = null;
-    const modal = document.getElementById('overridePinModal');
-    if (modal) modal.style.display = 'none';
-}
-
-async function weposSubmitOverride() {
-    const reason   = document.getElementById('overrideReason').value.trim();
-    const username = document.getElementById('overrideUsername').value.trim();
-    const password = document.getElementById('overridePassword').value.trim();
-    const pct      = parseFloat(document.getElementById('overridePercent').value) || 0;
-    const errEl    = document.getElementById('overridePinError');
-
-    errEl.style.display = 'none';
-
-    if (!reason)              { errEl.textContent = 'Please enter a reason.';               errEl.style.display = 'block'; return; }
-    if (!username || !password){ errEl.textContent = 'Enter manager username and password.'; errEl.style.display = 'block'; return; }
-    if (pct <= 0 || pct > 100){ errEl.textContent = 'Enter a valid discount % (1–100).';    errEl.style.display = 'block'; return; }
-
-    try {
-        const res = await fetch('../function/verify_override_pin.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-        const result = await res.json();
-
-        if (!result.success) {
-            errEl.textContent = result.error || 'Invalid credentials';
-            errEl.style.display = 'block';
-            return;
-        }
-
-        const item = weposCart[pendingOverride.cartId];
-        if (!item) { weposCancelOverride(); return; }
-
-        item.override = true;
-        item.overrideRate = pct / 100;
-        item.overrideApprover = result.approver_name;
-
-        // Log the override
-        await fetch('../function/log_override.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                product_id: item.id,
-                product_name: item.name,
-                original_price: item.price * item.qty,
-                discounted_price: (item.price * item.qty) * (1 - pct / 100),
-                discount_amount: (item.price * item.qty) * (pct / 100),
-                discount_percent: pct,
-                reason,
-                approver_id: result.approver_id,
-                approver_name: result.approver_name
-            })
-        });
-
-        weposCancelOverride();
-        weposRenderCheckoutItems();
-        weposUpdateCart();
-        // Refresh modal amount
-        const totalText = document.getElementById('calcTotal').textContent.replace('₱', '');
-        document.getElementById('modalAmountDue').textContent = '₱' + parseFloat(totalText).toFixed(2);
-
-    } catch (err) {
-        errEl.textContent = 'Network error. Try again.';
-        errEl.style.display = 'block';
-    }
-}
-
-// ═════ PAYMENT METHODS & CASH ═════
 function weposSelectMethod(btn, method) {
     document.querySelectorAll('.wepos-pay-method').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -494,7 +345,7 @@ function weposGenerateQuickCash(total) {
     const rounded = Math.ceil(total / 50) * 50;
     const amounts = [...new Set([total, rounded, rounded + 50, rounded + 100, 500, 1000])].filter(a => a >= total).slice(0, 4);
     
-    container.innerHTML = amounts.map(a => `<button type="button" onclick="weposSetCash(${a})">₱${a.toFixed(0)}</button>`).join('');
+    container.innerHTML = amounts.map(a => `<button type="button" onclick="weposSetCash(${a})">Γé▒${a.toFixed(0)}</button>`).join('');
 }
 
 function weposSetCash(amt) {
@@ -504,7 +355,7 @@ function weposSetCash(amt) {
 
 function weposCalcChange() {
     if (currentPayMethod !== 'Cash') return;
-    const total = parseFloat(document.getElementById('btnTotalAmount').textContent.replace('₱', ''));
+    const total = parseFloat(document.getElementById('btnTotalAmount').textContent.replace('Γé▒', ''));
     const tendered = parseFloat(document.getElementById('weposTendered').value) || 0;
     const change = tendered - total;
 
@@ -513,7 +364,7 @@ function weposCalcChange() {
 
     if (tendered >= total) {
         changeBox.style.display = 'block';
-        document.getElementById('modalChange').textContent = '₱' + change.toFixed(2);
+        document.getElementById('modalChange').textContent = 'Γé▒' + change.toFixed(2);
         confirmBtn.disabled = false;
     } else {
         changeBox.style.display = 'none';
@@ -546,7 +397,7 @@ async function weposSubmitTransaction() {
         if (result.success) {
             alert('Transaction #' + String(result.transaction_id).padStart(6,'0') + ' completed successfully!');
             weposClosePayModal();
-            location.reload();
+            location.reload(); // Quick way to refresh stock levels
         } else {
             alert('Payment Error: ' + result.error);
         }

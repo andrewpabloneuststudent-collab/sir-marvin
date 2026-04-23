@@ -9,6 +9,9 @@ $products = $product->getAllProducts();
 $categories = $product->getCategories();
 $classifications = $product->getClassifications();
 
+$pmUserRole = strtolower($_SESSION['position'] ?? 'staff');
+$pmIsManager = in_array($pmUserRole, ['owner', 'admin']);
+
 if (isset($_GET['deleteProduct'])) {
     $id = (int) $_GET['deleteProduct'];
 
@@ -42,10 +45,16 @@ if ($product->addProduct()) {
         <!-- ADD PRODUCT BUTTON -->
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="mb-0">Product Management</h4>
-
-            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                + Add Product
-            </button>
+            <div class="d-flex gap-2">
+                <?php if ($pmIsManager): ?>
+                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#catSettingsBootstrapModal">
+                    <i class="fas fa-tags"></i> Category Settings
+                </button>
+                <?php endif; ?>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                    + Add Product
+                </button>
+            </div>
         </div>
 
         <table class="table table-striped table-hover align-middle w-100 myTable">
@@ -97,3 +106,103 @@ if ($product->addProduct()) {
 <?php include 'updateproductmodal.php'; ?>
 <?php include 'addproductmodal.php'; ?>
 <script src="js/usermanagement.js"></script>
+
+<?php if ($pmIsManager): ?>
+<!-- ═══ CATEGORY SETTINGS MODAL (Bootstrap - Owner/Admin only) ═══ -->
+<div class="modal fade" id="catSettingsBootstrapModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-tags"></i> Category Discount & VAT Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted" style="font-size:0.85rem;">
+                    Configure which categories qualify for VAT, Senior Citizen, and PWD discounts.<br>
+                    These settings are automatically applied at the POS.
+                </p>
+                <table class="table table-hover align-middle" id="catSettingsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Category</th>
+                            <th class="text-center" style="width:100px;">VAT (12%)</th>
+                            <th class="text-center" style="width:100px;">Senior</th>
+                            <th class="text-center" style="width:100px;">PWD</th>
+                            <th class="text-center" style="width:80px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="catSettingsBody">
+                        <tr><td colspan="5" class="text-center text-muted py-4">Loading...</td></tr>
+                    </tbody>
+                </table>
+                <div id="catSettingsSaveStatus" style="font-size:0.85rem; display:none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load settings when modal opens
+document.getElementById('catSettingsBootstrapModal').addEventListener('show.bs.modal', function() {
+    pmLoadCatSettings();
+});
+
+// Alias for POS JS compatibility
+function weposOpenCatSettings() {
+    const modal = new bootstrap.Modal(document.getElementById('catSettingsBootstrapModal'));
+    modal.show();
+}
+
+async function pmLoadCatSettings() {
+    const tbody = document.getElementById('catSettingsBody');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Loading...</td></tr>';
+    try {
+        const res  = await fetch('../function/category_settings.php');
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        let html = '';
+        data.categories.forEach(cat => {
+            html += `<tr>
+                <td><strong>${cat.category_name}</strong></td>
+                <td class="text-center"><input type="checkbox" class="form-check-input" id="vat-${cat.id}" ${cat.has_vat==1?'checked':''}></td>
+                <td class="text-center"><input type="checkbox" class="form-check-input" id="senior-${cat.id}" ${cat.senior_discount==1?'checked':''}></td>
+                <td class="text-center"><input type="checkbox" class="form-check-input" id="pwd-${cat.id}" ${cat.pwd_discount==1?'checked':''}></td>
+                <td class="text-center"><button class="btn btn-sm btn-primary" onclick="pmSaveCat(${cat.id}, this)">Save</button></td>
+            </tr>`;
+        });
+        tbody.innerHTML = html;
+    } catch(e) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Failed to load: ' + e.message + '</td></tr>';
+    }
+}
+
+async function pmSaveCat(id, btn) {
+    const origText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+    const payload = {
+        id,
+        has_vat:         document.getElementById('vat-'+id)?.checked    ? 1 : 0,
+        senior_discount: document.getElementById('senior-'+id)?.checked  ? 1 : 0,
+        pwd_discount:    document.getElementById('pwd-'+id)?.checked     ? 1 : 0,
+    };
+    try {
+        const res  = await fetch('../function/category_settings.php', {
+            method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            btn.className = 'btn btn-sm btn-success';
+            setTimeout(() => { btn.innerHTML = origText; btn.className = 'btn btn-sm btn-primary'; btn.disabled = false; }, 1500);
+        } else {
+            alert('Error: ' + data.error);
+            btn.innerHTML = origText; btn.disabled = false;
+        }
+    } catch(e) {
+        alert('Network error');
+        btn.innerHTML = origText; btn.disabled = false;
+    }
+}
+</script>
+<?php endif; ?>

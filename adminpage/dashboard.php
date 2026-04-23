@@ -87,31 +87,31 @@ if (isset($_GET['added'])) {
             </div>
         </div>
 
-        <div class="tab-content" id="v-pills-tabContent">
+        <div class="tab-content flex-grow-1 w-100" id="v-pills-tabContent" style="background-color: #f8fafc; min-height: 100vh; overflow: hidden;">
 
-            <div class="tab-pane fade <?= $activeTab === 'dashboard' ? 'show active' : '' ?>" id="v-pills-dashboard">
+            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'dashboard' ? 'show active' : '' ?>" id="v-pills-dashboard">
                 <?php include __DIR__ . "/../reusablepage/dashboard.php"; ?>
             </div>
-            <div class="tab-pane fade <?= $activeTab === 'product' ? 'show active' : '' ?>" id="v-pills-product">
+            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'product' ? 'show active' : '' ?>" id="v-pills-product">
                 <?php include __DIR__ . "/../reusablepage/productmanagement.php"; ?>
             </div>
-            <div class="tab-pane fade <?= $activeTab === 'inventory' ? 'show active' : '' ?>" id="v-pills-inventory">
+            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'inventory' ? 'show active' : '' ?>" id="v-pills-inventory">
                 <?php include __DIR__ . "/../reusablepage/inventorymanagement.php"; ?>
             </div>
-            <div class="tab-pane fade <?= $activeTab === 'sales' ? 'show active' : '' ?>" id="v-pills-sales">
+            <div class="tab-pane fade <?= $activeTab === 'sales' ? 'show active' : '' ?>" id="v-pills-sales" style="padding: 0; height: 100%; overflow: hidden;">
                 <?php include __DIR__ . "/../reusablepage/salespos.php"; ?>
             </div>
-            <div class="tab-pane fade <?= $activeTab === 'reports' ? 'show active' : '' ?>" id="v-pills-reports">
+            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'reports' ? 'show active' : '' ?>" id="v-pills-reports">
                 <?php include __DIR__ . "/../reusablepage/reports.php"; ?>
             </div>
-            <div class="tab-pane fade <?= $activeTab === 'pendingaccount' ? 'show active' : '' ?>"
+            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'pendingaccount' ? 'show active' : '' ?>"
                 id="v-pills-pendingaccount">
                 <?php include __DIR__ . "/../reusablepage/pendingaccountadmin.php"; ?>
             </div>
-            <div class="tab-pane fade <?= $activeTab === 'users' ? 'show active' : '' ?>" id="v-pills-users">
+            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'users' ? 'show active' : '' ?>" id="v-pills-users">
                 <?php include __DIR__ . "/../reusablepage/adminaddaccount.php"; ?>
             </div>
-            <div class="tab-pane fade <?= $activeTab === 'system' ? 'show active' : '' ?>" id="v-pills-system">
+            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'system' ? 'show active' : '' ?>" id="v-pills-system">
                 <?php include __DIR__ . "/../reusablepage/systemsettings.php"; ?>
             </div>
         </div>
