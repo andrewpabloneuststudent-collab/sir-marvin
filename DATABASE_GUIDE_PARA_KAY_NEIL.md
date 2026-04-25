@@ -11,6 +11,10 @@ Hoy Neil! Kailangan mo i-update yung database mo para gumana yung bagong **Disco
    Eto yung pinaka-importante. I-run mo (o i-import) yung file na:
    `scratch/migration_discount_system.sql`
    
+   **UPDATE**: Kung nag-eerror yung full migration, gamitin mo itong specific tables file:
+   `scratch/specific_tables_export.sql`
+   (Ito ay para sa `product_categories` at `override_log` lang para hindi mag-conflict sa ibang tables mo).
+
    **Ano ang ginagawa nito?**
    - Nagdadagdag ng `has_vat`, `senior_discount`, at `pwd_discount` columns sa `product_categories` table.
    - Gagawa ng bagong table na `override_log` para ma-track kung sino yung nag-aapprove ng discount.
