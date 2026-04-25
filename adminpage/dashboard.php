@@ -98,7 +98,7 @@ if (isset($_GET['added'])) {
             <div class="tab-pane fade <?= $activeTab === 'inventory' ? 'show active' : '' ?>" id="v-pills-inventory">
                 <?php include __DIR__ . "/../reusablepage/inventorymanagement.php"; ?>
             </div>
-            <div class="tab-pane fade <?= $activeTab === 'sales' ? 'show active' : '' ?>" id="v-pills-sales">
+           <div class="tab-pane fade <?= $activeTab === 'sales' ? 'show active' : '' ?>" id="v-pills-sales" style="padding: 0; height: 100%; overflow: hidden;">
                 <?php include __DIR__ . "/../reusablepage/salespos.php"; ?>
             </div>
             <div class="tab-pane fade <?= $activeTab === 'reports' ? 'show active' : '' ?>" id="v-pills-reports">
