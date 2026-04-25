@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -10,9 +10,6 @@ $product = new Product($db);
 $products = $product->getProducts();
 $categories = $product->getCategories();
 $discounts = $product->getDiscounts();
-
-$userRole = strtolower($_SESSION['position'] ?? 'staff');
-$isManager = in_array($userRole, ['owner', 'admin']);
 ?>
 
 <!-- wePOS Inspired CSS -->
@@ -20,7 +17,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
 
 <div class="wepos-wrapper" id="weposApp">
     
-    <!-- ═══════════════ LEFT PANEL: PRODUCT GRID ═══════════════ -->
+    <!-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ LEFT PANEL: PRODUCT GRID ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ -->
     <div class="wepos-left">
         
         <!-- Header & Search -->
@@ -57,13 +54,12 @@ $isManager = in_array($userRole, ['owner', 'admin']);
                     <div class="wepos-product-card <?= $isOut ? 'out-of-stock' : '' ?>"
                          data-id="<?= $row['id'] ?>"
                          data-name="<?= htmlspecialchars($row['product_name']) ?>"
-                         data-price="<?= $row['total_price'] ?>"
+                         data-price="<?= $row['gross_price'] ?>"
                          data-net="<?= $row['net_price'] ?>"
                          data-barcode="<?= htmlspecialchars($row['barcode'] ?? '') ?>"
                          data-category="<?= htmlspecialchars($row['category_name'] ?? 'Uncategorized') ?>"
-                         data-has-vat="<?= (int)($row['has_vat'] ?? 0) ?>"
-                         data-senior="<?= (int)($row['senior_discount'] ?? 0) ?>"
-                         data-pwd="<?= (int)($row['pwd_discount'] ?? 0) ?>"
+                         data-discountable="<?= $row['is_discountable'] ?>"
+                         data-vatable="<?= $row['is_vatable'] ?>"
                          data-stock="<?= $stock ?>"
                          onclick="weposAddToCart(this)">
                         
@@ -88,7 +84,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
                         </div>
                         
                         <div class="wepos-card-info">
-                            <div class="wepos-card-price">₱<?= number_format($row['total_price'], 2) ?></div>
+                            <div class="wepos-card-price">Γé▒<?= number_format($row['gross_price'], 2) ?></div>
                             <div class="wepos-card-name" title="<?= htmlspecialchars($row['product_name']) ?>">
                                 <?= htmlspecialchars($row['product_name']) ?>
                             </div>
@@ -100,7 +96,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
 
     </div>
 
-    <!-- ═══════════════ RIGHT PANEL: CART & CHECKOUT ═══════════════ -->
+    <!-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ RIGHT PANEL: CART & CHECKOUT ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ -->
     <div class="wepos-right">
         
         <!-- Customer & Tabs -->
@@ -162,30 +158,30 @@ $isManager = in_array($userRole, ['owner', 'admin']);
             <div class="wepos-calc-box">
                 <div class="wepos-calc-row">
                     <span>Subtotal</span>
-                    <span id="calcSub">₱0.00</span>
+                    <span id="calcSub">Γé▒0.00</span>
                 </div>
                 <div class="wepos-calc-row text-danger" id="rowDiscount" style="display:none;">
                     <span>Discount (<span id="calcDiscountLabel">0%</span>)</span>
-                    <span id="calcDiscount">-₱0.00</span>
+                    <span id="calcDiscount">-Γé▒0.00</span>
                 </div>
                 <div class="wepos-calc-row text-muted" id="rowVatExempt" style="display:none;">
                     <span>VAT Exemption</span>
-                    <span id="calcVatExempt">-₱0.00</span>
+                    <span id="calcVatExempt">-Γé▒0.00</span>
                 </div>
                 <div class="wepos-calc-row text-muted">
                     <span>VAT (12%)</span>
-                    <span id="calcVat">₱0.00</span>
+                    <span id="calcVat">Γé▒0.00</span>
                 </div>
                 <div class="wepos-calc-row total-row">
                     <span>Total Due</span>
-                    <span class="wepos-grand-total" id="calcTotal">₱0.00</span>
+                    <span class="wepos-grand-total" id="calcTotal">Γé▒0.00</span>
                 </div>
             </div>
 
             <!-- Pay Button -->
             <button class="wepos-pay-btn" id="weposPayBtn" onclick="weposOpenPayModal()" disabled>
                 <span>Pay Now</span>
-                <span class="wepos-pay-amount" id="btnTotalAmount">₱0.00</span>
+                <span class="wepos-pay-amount" id="btnTotalAmount">Γé▒0.00</span>
             </button>
         </div>
 
@@ -193,7 +189,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
 
 </div>
 
-<!-- ═══════════════ PAYMENT MODAL ═══════════════ -->
+<!-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ PAYMENT MODAL ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ -->
 <div class="wepos-modal-overlay" id="weposPayModal" style="display:none;" onclick="weposClosePayModal(event)">
     <div class="wepos-modal" onclick="event.stopPropagation()">
         <div class="wepos-modal-head">
@@ -203,11 +199,8 @@ $isManager = in_array($userRole, ['owner', 'admin']);
         <div class="wepos-modal-body">
             
             <div class="wepos-modal-totals">
-                <div class="wepos-modal-amt">Amount Due: <strong class="text-primary" id="modalAmountDue">₱0.00</strong></div>
+                <div class="wepos-modal-amt">Amount Due: <strong class="text-primary" id="modalAmountDue">Γé▒0.00</strong></div>
             </div>
-
-            <!-- Checkout Items with Override -->
-            <div id="weposCheckoutItems" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #e0e0e0; border-radius: 4px; display: none;"></div>
 
             <div class="wepos-pay-methods">
                 <button class="wepos-pay-method active" onclick="weposSelectMethod(this, 'Cash')"><i class="fas fa-money-bill-wave"></i> Cash</button>
@@ -216,7 +209,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
             </div>
 
             <div class="wepos-tendered-box">
-                <label>Amount Tendered (₱)</label>
+                <label>Amount Tendered (Γé▒)</label>
                 <input type="number" id="weposTendered" class="wepos-input-lg" placeholder="0.00" oninput="weposCalcChange()" autofocus>
                 
                 <div class="wepos-quick-cash" id="weposQuickCash"></div>
@@ -224,7 +217,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
 
             <div class="wepos-change-box" id="weposChangeBox" style="display:none;">
                 <span>Change:</span>
-                <strong id="modalChange">₱0.00</strong>
+                <strong id="modalChange">Γé▒0.00</strong>
             </div>
 
         </div>
@@ -235,42 +228,4 @@ $isManager = in_array($userRole, ['owner', 'admin']);
     </div>
 </div>
 
-<!-- ═══════════════ OVERRIDE PIN MODAL ═══════════════ -->
-<div class="wepos-modal-overlay" id="overridePinModal" style="display:none;" onclick="event.stopPropagation()">
-    <div class="wepos-modal" onclick="event.stopPropagation()">
-        <div class="wepos-modal-head" style="background: #fff3cd;">
-            <h5 style="color: #856404;"><i class="fas fa-shield-alt"></i> Manager Approval Required</h5>
-            <button onclick="weposCancelOverride()"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="wepos-modal-body">
-            <p class="text-muted" style="font-size:0.9rem; margin-bottom:1rem;">
-                Discount override requires manager authorization.<br>
-                A log of this action will be recorded.
-            </p>
-            <div id="overrideItemPreview" style="background:#f8f9fa; border:1px solid #dcdcde; padding:10px 14px; border-radius:4px; font-size:13px; margin-bottom:14px;"></div>
-            <div style="margin-bottom: 0.75rem;">
-                <label style="font-size:0.85rem; font-weight:600; margin-bottom:0.25rem; display:block;">Reason for Discount</label>
-                <textarea id="overrideReason" rows="2" placeholder="e.g. Regular customer, damaged packaging..." style="width:100%; border-radius:4px; border:1px solid #8c8f94; padding:0.5rem; font-size:0.9rem; resize:none;"></textarea>
-            </div>
-            <div style="margin-bottom:0.75rem;">
-                <label style="font-size:0.85rem; font-weight:600; margin-bottom:0.25rem; display:block;">Override Discount %</label>
-                <input type="number" id="overridePercent" min="1" max="100" value="12" step="1" style="width:100%; border-radius:4px; border:1px solid #8c8f94; padding:0.5rem; font-size:1rem;">
-            </div>
-            <hr>
-            <p style="font-size:0.85rem; font-weight:600; margin-bottom:0.5rem;">Manager Login</p>
-            <input type="text" id="overrideUsername" placeholder="Manager username" autocomplete="off" style="width:100%; border-radius:4px; border:1px solid #8c8f94; padding:0.5rem; font-size:0.9rem; margin-bottom:0.5rem;">
-            <input type="password" id="overridePassword" placeholder="Manager password" style="width:100%; border-radius:4px; border:1px solid #8c8f94; padding:0.5rem; font-size:0.9rem; margin-bottom:1rem;">
-            <div id="overridePinError" class="text-danger" style="font-size:0.85rem; display:none; margin-bottom:0.5rem;"></div>
-        </div>
-        <div class="wepos-modal-foot">
-            <button class="wepos-btn wepos-btn-outline" onclick="weposCancelOverride()">Cancel</button>
-            <button class="wepos-btn wepos-btn-primary" onclick="weposSubmitOverride()"><i class="fas fa-unlock"></i> Authorize Override</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    const WEPOS_ROLE = '<?= $userRole ?>';
-    const WEPOS_IS_MANAGER = <?= $isManager ? 'true' : 'false' ?>;
-</script>
 <script src="../js/pos_wepos.js"></script>

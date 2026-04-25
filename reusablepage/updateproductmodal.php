@@ -37,6 +37,7 @@
 
                     <input type="text" name="unit" class="form-control mb-2" value="<?= $prod['unit'] ?? '' ?>">
                     <input type="number" step="0.01" name="net_price" class="form-control mb-2" value="<?= $prod['net_price'] ?? '' ?>">
+                    <input type="number" step="0.01" name="total_price" class="form-control mb-2" value="<?= $prod['total_price'] ?? '' ?>">
                     <input type="number" name="quantity" class="form-control mb-2"
                         value="<?= $prod['quantity'] ?? '' ?>">
                     <input type="date" name="expiry_date" class="form-control mb-2"
