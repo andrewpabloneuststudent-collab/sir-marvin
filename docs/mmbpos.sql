@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 22, 2026 at 12:26 PM
+-- Generation Time: Apr 27, 2026 at 06:54 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -65,7 +65,8 @@ INSERT INTO `inventory` (`id`, `product_id`, `quantity`, `expiry_date`) VALUES
 (9, 18, 23, '2026-05-09'),
 (10, 19, 232, '2026-04-22'),
 (11, 22, 321, '2026-05-09'),
-(12, 23, 220, '2026-05-09');
+(12, 23, 220, '2026-05-09'),
+(13, 24, 23, '2026-05-09');
 
 -- --------------------------------------------------------
 
@@ -131,7 +132,7 @@ CREATE TABLE `products` (
   `classification_id` int(11) DEFAULT NULL,
   `unit` varchar(50) DEFAULT NULL,
   `net_price` decimal(10,2) NOT NULL,
-  `gross_price` decimal(10,2) NOT NULL,
+  `total_price` decimal(10,2) NOT NULL,
   `imageproduct` varchar(500) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -139,11 +140,12 @@ CREATE TABLE `products` (
 -- Dumping data for table `products`
 --
 
-INSERT INTO `products` (`id`, `product_name`, `barcode`, `category_id`, `classification_id`, `unit`, `net_price`, `gross_price`, `imageproduct`) VALUES
+INSERT INTO `products` (`id`, `product_name`, `barcode`, `category_id`, `classification_id`, `unit`, `net_price`, `total_price`, `imageproduct`) VALUES
 (18, 'Sister (Day Maxi)', '155665666566565', 7, 1, 'Tablet', 32.50, 36.40, ''),
 (19, 'Biogesic 500 mg Tablet', '23769039483_138630626592', 7, 1, 'Tablet', 33.55, 37.58, ''),
 (22, 'Coca Cola', '1556656665665654234', 12, 8, '1 Unit', 56.50, 63.28, ''),
-(23, 'Sister PInk', '4806506318832', 6, 9, '1 Pouch', 31.50, 35.28, '');
+(23, 'Sister PInk', '4806506318832', 6, 9, '1 Pouch', 31.50, 35.28, ''),
+(24, 'titi', '48065063188322323', 1, 1, 'dsfs', 31.00, 40.00, '');
 
 -- --------------------------------------------------------
 
@@ -153,30 +155,33 @@ INSERT INTO `products` (`id`, `product_name`, `barcode`, `category_id`, `classif
 
 CREATE TABLE `product_categories` (
   `id` int(11) NOT NULL,
-  `category_name` varchar(100) NOT NULL
+  `category_name` varchar(100) NOT NULL,
+  `has_vat` tinyint(1) DEFAULT 1,
+  `senior_discount` tinyint(1) DEFAULT 1,
+  `pwd_discount` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `product_categories`
 --
 
-INSERT INTO `product_categories` (`id`, `category_name`) VALUES
-(7, 'Baby Care'),
-(1, 'Beverage'),
-(12, 'Beverages'),
-(14, 'Canned Goods'),
-(16, 'Dairy Products'),
-(10, 'Diagnostics'),
-(9, 'First Aid'),
-(8, 'Health & Wellness'),
-(11, 'Herbal Products'),
-(15, 'Instant Food'),
-(4, 'Medical Supplies'),
-(3, 'Over-the-Counter (OTC)'),
-(6, 'Personal Care'),
-(2, 'Prescription Medicines'),
-(13, 'Snacks'),
-(5, 'Vitamins & Supplements');
+INSERT INTO `product_categories` (`id`, `category_name`, `has_vat`, `senior_discount`, `pwd_discount`) VALUES
+(1, 'Beverage', 1, 1, 1),
+(2, 'Prescription Medicines', 1, 1, 1),
+(3, 'Over-the-Counter (OTC)', 1, 1, 1),
+(4, 'Medical Supplies', 1, 1, 1),
+(5, 'Vitamins & Supplements', 1, 1, 1),
+(6, 'Personal Care', 1, 1, 1),
+(7, 'Baby Care', 1, 1, 1),
+(8, 'Health & Wellness', 1, 1, 1),
+(9, 'First Aid', 1, 1, 1),
+(10, 'Diagnostics', 1, 1, 1),
+(11, 'Herbal Products', 1, 1, 1),
+(12, 'Beverages', 1, 1, 1),
+(13, 'Snacks', 1, 1, 1),
+(14, 'Canned Goods', 1, 1, 1),
+(15, 'Instant Food', 1, 1, 1),
+(16, 'Dairy Products', 1, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -396,13 +401,13 @@ ALTER TABLE `discounts`
 -- AUTO_INCREMENT for table `inventory`
 --
 ALTER TABLE `inventory`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `login_attempts`
 --
 ALTER TABLE `login_attempts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `pre_approved_users`
@@ -420,7 +425,7 @@ ALTER TABLE `pre_approved_users_info`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `product_categories`
