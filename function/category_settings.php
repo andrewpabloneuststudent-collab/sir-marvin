@@ -29,6 +29,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $body = json_decode(file_get_contents('php://input'), true);
+
+    if (isset($body['action']) && $body['action'] === 'add_category') {
+        $category_name = trim($body['category_name'] ?? '');
+        if (empty($category_name)) {
+            echo json_encode(['error' => 'Category name cannot be empty']);
+            exit;
+        }
+        try {
+            $stmt = $db->prepare("INSERT INTO product_categories (category_name, has_vat, senior_discount, pwd_discount) VALUES (?, 0, 0, 0)");
+            $stmt->execute([$category_name]);
+            echo json_encode(['success' => true]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => 'Category may already exist or error occurred. ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
     $id              = (int)($body['id'] ?? 0);
     $has_vat         = (int)($body['has_vat'] ?? 0);
     $senior_discount = (int)($body['senior_discount'] ?? 0);
