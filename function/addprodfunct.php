@@ -41,6 +41,23 @@ class ProductManagement
         }
     }
 
+    private function handleImageUpload()
+    {
+        if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] == 0) {
+            $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            $filename = $_FILES['product_image']['name'];
+            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            if (in_array($ext, $allowed)) {
+                $newFileName = uniqid() . '.' . $ext;
+                $dest = __DIR__ . '/../uploads/products/' . $newFileName;
+                if (move_uploaded_file($_FILES['product_image']['tmp_name'], $dest)) {
+                    return $newFileName;
+                }
+            }
+        }
+        return '';
+    }
+
     // 🔥 ADD PRODUCT (WITH TRANSACTION)
     public function addProduct()
     {
@@ -50,11 +67,13 @@ class ProductManagement
                 // START TRANSACTION
                 $this->con->beginTransaction();
 
+                $imagePath = $this->handleImageUpload();
+
                 // ➕ INSERT PRODUCT
                 $stmt = $this->con->prepare("
                 INSERT INTO products 
-                (product_name, barcode, category_id, classification_id, unit, net_price, total_price)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                (product_name, barcode, category_id, classification_id, unit, net_price, total_price, imageproduct)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ");
 
                 $stmt->execute([
@@ -64,7 +83,8 @@ class ProductManagement
                     $this->classification_id,
                     $this->unit,
                     $this->net_price,
-                    $this->total_price
+                    $this->total_price,
+                    $imagePath
                 ]);
 
                 $productId = $this->con->lastInsertId();
@@ -109,6 +129,7 @@ class ProductManagement
                 pc.category_name,
                 p.barcode,
                 p.unit,
+                p.imageproduct,
                 pcl.classification_name,
                 COALESCE(SUM(i.quantity), 0) AS quantity,
                 MAX(i.expiry_date) AS expiry_date
@@ -185,24 +206,47 @@ class ProductManagement
                     }
                 }
 
-                // ✏️ UPDATE PRODUCT
-                $stmt = $this->con->prepare("
-                UPDATE products 
-                SET product_name = ?, barcode = ?, category_id = ?, 
-                classification_id = ?, unit = ?, net_price = ?, total_price = ?
-                WHERE id = ?
-            ");
+                $imagePath = $this->handleImageUpload();
 
-                $stmt->execute([
-                    $this->product_name,
-                    $this->barcode,
-                    $this->category_id,
-                    $this->classification_id,
-                    $this->unit,
-                    $this->net_price,
-                    $this->total_price,
-                    $this->id
-                ]);
+                // ✏️ UPDATE PRODUCT
+                if ($imagePath !== '') {
+                    $stmt = $this->con->prepare("
+                    UPDATE products 
+                    SET product_name = ?, barcode = ?, category_id = ?, 
+                    classification_id = ?, unit = ?, net_price = ?, total_price = ?, imageproduct = ?
+                    WHERE id = ?
+                ");
+
+                    $stmt->execute([
+                        $this->product_name,
+                        $this->barcode,
+                        $this->category_id,
+                        $this->classification_id,
+                        $this->unit,
+                        $this->net_price,
+                        $this->total_price,
+                        $imagePath,
+                        $this->id
+                    ]);
+                } else {
+                    $stmt = $this->con->prepare("
+                    UPDATE products 
+                    SET product_name = ?, barcode = ?, category_id = ?, 
+                    classification_id = ?, unit = ?, net_price = ?, total_price = ?
+                    WHERE id = ?
+                ");
+
+                    $stmt->execute([
+                        $this->product_name,
+                        $this->barcode,
+                        $this->category_id,
+                        $this->classification_id,
+                        $this->unit,
+                        $this->net_price,
+                        $this->total_price,
+                        $this->id
+                    ]);
+                }
 
                 // ✏️ UPDATE INVENTORY (simple version)
                 $stmt = $this->con->prepare("
@@ -300,14 +344,19 @@ class ProductManagement
         }
 
         $html = '<div id="lowStockAlert">';
-        $html .= '⚠ WARNING: Low stock detected!<br><br>';
+        $html .= '<div class="d-flex justify-content-between align-items-center mb-3">';
+        $html .= '<h5 class="mb-0 text-warning"><i class="fas fa-exclamation-triangle me-2"></i>Low Stock</h5>';
+        $html .= '<button type="button" class="btn-close btn-close-sm" onclick="this.parentElement.parentElement.remove()"></button>';
+        $html .= '</div><div class="alert-items-container">';
 
         foreach ($items as $item) {
-            $html .= '• ' . htmlspecialchars($item['product_name']) .
-                ' (' . $item['quantity'] . ' left)<br>';
+            $html .= '<div class="alert-item d-flex justify-content-between mb-2 pb-2 border-bottom">';
+            $html .= '<span class="text-truncate pe-2">' . htmlspecialchars($item['product_name']) . '</span>';
+            $html .= '<span class="badge bg-warning text-dark">' . $item['quantity'] . ' left</span>';
+            $html .= '</div>';
         }
 
-        $html .= '<br><button onclick="closeAlert()">OK</button>';
+        $html .= '</div>';
         $html .= '</div>';
 
         return $html;
@@ -344,18 +393,24 @@ class ProductManagement
         }
 
         $html = '<div id="expiryAlert">';
-        $html .= '<h4>⚠ Expiration Warning</h4><br>';
+        $html .= '<div class="d-flex justify-content-between align-items-center mb-3">';
+        $html .= '<h5 class="mb-0 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Expiring Soon</h5>';
+        $html .= '<button type="button" class="btn-close btn-close-sm" onclick="this.parentElement.parentElement.remove()"></button>';
+        $html .= '</div><div class="alert-items-container">';
 
         foreach ($items as $item) {
-
             if ($item['status'] === 'Expired') {
-                $html .= "<div class='expiry-expired'>• " . htmlspecialchars($item['name']) . " (Expired)</div>";
+                $html .= '<div class="alert-item d-flex justify-content-between mb-2 pb-2 border-bottom">';
+                $html .= '<span class="text-truncate pe-2">' . htmlspecialchars($item['name']) . '</span>';
+                $html .= '<span class="badge bg-danger">Expired</span></div>';
             } else {
-                $html .= "<div class='expiry-near'>• " . htmlspecialchars($item['name']) . " (Near Expiry)</div>";
+                $html .= '<div class="alert-item d-flex justify-content-between mb-2 pb-2 border-bottom">';
+                $html .= '<span class="text-truncate pe-2">' . htmlspecialchars($item['name']) . '</span>';
+                $html .= '<span class="badge bg-warning text-dark">Near Expiry</span></div>';
             }
         }
 
-        $html .= '<br><button onclick="document.getElementById(\'expiryAlert\').remove()">OK</button>';
+        $html .= '</div>';
         $html .= '</div>';
 
         return $html;

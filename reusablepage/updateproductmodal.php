@@ -9,7 +9,7 @@
             </div>
             <div class="modal-body">
                 
-                <form method="POST">
+                <form method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="id" value="<?= $prod['id'] ?? '' ?>">
                     <input type="text" name="product_name" class="form-control mb-2"
                         value="<?= $prod['product_name'] ?? '' ?>" placeholder="Product Name">
@@ -42,6 +42,9 @@
                         value="<?= $prod['quantity'] ?? '' ?>">
                     <input type="date" name="expiry_date" class="form-control mb-2"
                         value="<?= $prod['expiry_date'] ?? '' ?>">
+
+                    <label class="mt-2 text-muted" style="font-size:0.85rem">Update Product Image (Optional)</label>
+                    <input type="file" name="product_image" class="form-control mb-3" accept="image/*">
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
