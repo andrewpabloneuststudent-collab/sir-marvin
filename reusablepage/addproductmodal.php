@@ -70,8 +70,12 @@ $classifications = $product->getClassifications();
 
                     <!-- PRICE -->
                     <div class="mb-2">
-                        <label>Price</label>
+                        <label>Net Price</label>
                         <input type="number" step="0.01" name="net_price" class="form-control" required>
+                    </div>
+                    <div class="mb-2">
+                        <label>Total Price</label>
+                        <input type="number" step="0.01" name="total_price" class="form-control" required>
                     </div>
 
                     <!-- STOCK -->

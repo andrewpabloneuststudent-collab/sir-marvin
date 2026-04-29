@@ -13,7 +13,7 @@ class ProductManagement
     public int $classification_id;
     public string $unit;
     public float $net_price;
-    public float $gross_price;
+    public float $total_price;
     public int $quantity;
     public string $expiry_date;
 
@@ -35,7 +35,7 @@ class ProductManagement
             $this->classification_id = (int) ($_POST['classification_id'] ?? 0);
             $this->unit = $_POST['unit'] ?? '';
             $this->net_price = (float) ($_POST['net_price'] ?? 0);
-            $this->gross_price = $this->net_price * 1.12;
+            $this->total_price = $this->net_price * 1.12;
             $this->quantity = (int) ($_POST['quantity'] ?? 0);
             $this->expiry_date = $_POST['expiry_date'] ?? '';
         }
@@ -53,7 +53,7 @@ class ProductManagement
                 // ➕ INSERT PRODUCT
                 $stmt = $this->con->prepare("
                 INSERT INTO products 
-                (product_name, barcode, category_id, classification_id, unit, net_price, gross_price)
+                (product_name, barcode, category_id, classification_id, unit, net_price, total_price)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
 
@@ -64,7 +64,7 @@ class ProductManagement
                     $this->classification_id,
                     $this->unit,
                     $this->net_price,
-                    $this->gross_price
+                    $this->total_price
                 ]);
 
                 $productId = $this->con->lastInsertId();
@@ -105,7 +105,7 @@ class ProductManagement
                 p.id,
                 p.product_name,
                 p.net_price,
-                p.gross_price,
+                p.total_price,
                 pc.category_name,
                 p.barcode,
                 p.unit,
@@ -189,7 +189,7 @@ class ProductManagement
                 $stmt = $this->con->prepare("
                 UPDATE products 
                 SET product_name = ?, barcode = ?, category_id = ?, 
-                classification_id = ?, unit = ?, net_price = ?, gross_price = ?
+                classification_id = ?, unit = ?, net_price = ?, total_price = ?
                 WHERE id = ?
             ");
 
@@ -200,7 +200,7 @@ class ProductManagement
                     $this->classification_id,
                     $this->unit,
                     $this->net_price,
-                    $this->gross_price,
+                    $this->total_price,
                     $this->id
                 ]);
 

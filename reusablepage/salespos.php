@@ -6,98 +6,101 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . "/../conn/database.php";
 require_once __DIR__ . "/../function/workingpos.php";
 
-$product = new Product($db);
-$products = $product->getProducts();
+use Classes\POSManagement;
+
+$pos = new POSManagement($db);
+$pos->handle();
+
+// OPTIONAL ALERT
+$response = $pos->getResponse();
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <title>MMBPOS - POS</title>
-    <link rel="stylesheet" href="../css/pos.css">
+    <title>MMBPOS PRO</title>
+    <link href="../css/pos.css" rel="stylesheet">
 </head>
 
 <body>
 
-    <div class="container">
+<?php if (!empty($response)): ?>
+<script>alert("<?= $response ?>");</script>
+<?php endif; ?>
 
-        <!-- LEFT -->
-        <div class="products">
+<form method="POST" id="posForm">
 
-            <div class="search">
-                <input type="text" id="searchBox" placeholder="Scan or search product...">
-            </div>
+    <!-- HIDDEN INPUTS -->
+    <input type="hidden" name="void_index" id="void_index">
+    <input type="hidden" name="void_password" id="void_password">
+    <input type="hidden" name="action" id="action">
 
-            <!-- CATEGORY -->
-            <div class="categories">
-                <button class="cat-btn active">All</button>
-                <button class="cat-btn">Beverages</button>
-                <button class="cat-btn">Medicine</button>
-            </div>
+    <!-- BARCODE INPUT -->
+    <input type="text" name="barcode" id="barcodeInput" autofocus style="opacity:0; position:absolute;">
 
-            <!-- PRODUCTS -->
-            <div class="product-grid">
-                <?php foreach ($products as $row): ?>
+    <div class="container-fluid py-3">
+        <div class="row g-3">
 
-                    <div class="product" data-id="<?= $row['id'] ?>"
-                        data-name="<?= htmlspecialchars($row['product_name']) ?>" data-price="<?= $row['gross_price'] ?>"
-                        data-net="<?= $row['net_price'] ?>" data-discountable="<?= $row['is_discountable'] ?>"
-                        data-vatable="<?= $row['is_vatable'] ?>">
+            <!-- LEFT SIDE -->
+            <div class="col-lg-9">
 
-                        <?php
-                        $image = !empty($row['image_product'])
-                            ? "../uploads/" . $row['image_product']
-                            : "https://via.placeholder.com/100";
-                        ?>
-
-                        <img src="<?= $image ?>" alt="product">
-
-                        <strong><?= htmlspecialchars($row['product_name']) ?></strong><br>
-                        ₱<?= number_format($row['gross_price'], 2) ?>
-
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-dark text-white">
+                        Cart
                     </div>
 
-                <?php endforeach; ?>
+                    <div class="card-body p-0">
+                        <table class="table table-striped mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="10%">Qty</th>
+                                    <th>Item</th>
+                                    <th width="20%">Price</th>
+                                    <th width="20%">Total</th>
+                                    <th width="10%">Action</th>
+                                </tr>
+                            </thead>
 
-            </div>
+                            <tbody>
+                            <?php if (!empty($_SESSION['cart'])): ?>
+                                <?php foreach ($_SESSION['cart'] as $index => $item): 
+                                    $total = $item['price'] * $item['qty'];
+                                ?>
+                                <tr>
+                                    <td><?= $item['qty'] ?></td>
+                                    <td><?= $item['name'] ?></td>
+                                    <td><?= number_format($item['price'], 2) ?></td>
+                                    <td><?= number_format($total, 2) ?></td>
+                                    <td>
+                                        <button type="button" 
+                                            class="btn btn-danger btn-sm voidBtn"
+                                            data-index="<?= $index ?>">
+                                            VOID
+                                        </button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                            </tbody>
 
-        </div>
-
-        <!-- RIGHT -->
-        <div class="cart">
-
-            <h2>Cart</h2>
-
-            <div class="cart-items" id="cartItems"></div>
-
-            <!-- DISCOUNT -->
-            <div class="discount-section">
-                <label>Discount</label>
-                <select id="discountType">
-                    <option value="none">None</option>
-                    <option value="senior">Senior</option>
-                    <option value="pwd">PWD</option>
-                </select>
-
-                <div id="customerInfo" style="display:none;">
-                    <input type="text" placeholder="Name">
-                    <input type="text" placeholder="ID Number">
+                        </table>
+                    </div>
                 </div>
+
             </div>
 
-            <div class="total" id="totalDisplay">TOTAL: ₱0.00</div>
-
-            <button class="checkout">Checkout</button>
-            <button class="clear" onclick="clearCart()">Clear</button>
+            <!-- RIGHT SIDE -->
+            <div class="col-lg-3">
+                <?php include "possummary.php" ?>
+            </div>
 
         </div>
-
     </div>
 
-    <script src="../js/buttonpos.js"></script>
+</form>
+
+<script src="../js/transactionpos.js"></script>
 
 </body>
-
 </html>
