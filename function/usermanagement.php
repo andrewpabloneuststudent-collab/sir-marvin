@@ -21,19 +21,21 @@ class UserManagement
             'password' => $data['password'] ?? '',
             'position' => $data['position'] ?? 'Staff',
 
-            'firstname' => $data['firstname'] ?? '',
-            'middlename' => $data['middlename'] ?? '',
-            'lastname' => $data['lastname'] ?? '',
-            'age' => (int) ($data['age'] ?? 0),
+            'firstname'     => $data['firstname'] ?? '',
+            'middlename'    => $data['middlename'] ?? '',
+            'lastname'      => $data['lastname'] ?? '',
+            'age'           => (int) ($data['age'] ?? 0),
 
-            'street' => $data['street'] ?? '',
-            'barangay' => $data['barangay'] ?? '',
-            'city' => $data['city'] ?? '',
-            'province' => $data['province'] ?? '',
-            'country' => $data['country'] ?? '',
+            'street'        => $data['street'] ?? '',
+            'barangay'      => $data['barangay'] ?? '',
+            'city'          => $data['city'] ?? '',
+            'province'      => $data['province'] ?? '',
+            'country'       => $data['country'] ?? '',
 
-            'email' => $data['email'] ?? '',
-            'contactnumber' => $data['contactnumber'] ?? ''
+            'email'         => $data['email'] ?? '',
+            'contactnumber' => $data['contactnumber'] ?? '',
+
+            'void_pin'      => $data['void_pin'] ?? null,
         ];
     }
 
@@ -56,9 +58,9 @@ class UserManagement
         // ✅ Default: no void password
         $voidRaw = null;
 
-        // ✅ ONLY generate if NOT staff
+        // ✅ ONLY generate if NOT staff — 8-digit PIN
         if (strtolower($d['position']) !== 'staff') {
-            $voidRaw = random_int(1000, 9999); // plain PIN
+            $voidRaw = str_pad(random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
         }
 
         // Insert user (NO HASH for void_password)
@@ -173,6 +175,35 @@ class UserManagement
         return $ok
             ? ['success' => true, 'message' => 'Deleted successfully']
             : ['success' => false, 'message' => 'Delete failed'];
+    }
+
+    // 🔐 UPDATE VOID PIN
+    public function updateVoidPin(int $userId, string $pin): array
+    {
+        if (!$userId) {
+            return ['success' => false, 'message' => 'Invalid user ID'];
+        }
+
+        // Must be exactly 8 digits
+        if (!preg_match('/^\d{8}$/', $pin)) {
+            return ['success' => false, 'message' => 'Void PIN must be exactly 8 digits.'];
+        }
+
+        // Ensure user is Owner or Admin
+        $stmt = $this->con->prepare("SELECT position FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch();
+
+        if (!$user || strtolower($user['position']) === 'staff') {
+            return ['success' => false, 'message' => 'Only Owner or Admin accounts can have a Void PIN.'];
+        }
+
+        $ok = $this->con->prepare("UPDATE users SET void_password = ? WHERE id = ?")
+            ->execute([$pin, $userId]);
+
+        return $ok
+            ? ['success' => true, 'message' => 'Void PIN updated successfully!']
+            : ['success' => false, 'message' => 'Failed to update Void PIN.'];
     }
 
     // 🔍 GET ALL
