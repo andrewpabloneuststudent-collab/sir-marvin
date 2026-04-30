@@ -730,6 +730,10 @@ function weposOnDiscountChange(selectEl) {
         document.getElementById('verifyIdNumber').value = '';
         document.getElementById('verifyIdError').style.display = 'none';
         document.getElementById('verifyIdNewMsg').style.display = 'none';
+        document.getElementById('verifyIdFootInitial').style.display = 'flex';
+        document.getElementById('verifyIdFootManual').style.display = 'none';
+        document.getElementById('verifyIdBtn').disabled = false;
+        document.getElementById('verifyIdBtn').innerHTML = 'Verify';
         document.getElementById('verifyIdModal').setAttribute('data-type', type);
         document.getElementById('verifyIdModal').setAttribute('data-discount-index', selectEl.selectedIndex);
         document.getElementById('verifyIdModal').style.display = 'flex';
@@ -775,33 +779,67 @@ async function weposSubmitVerifyId() {
             errEl.textContent = result.error;
             errEl.style.display = 'block';
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-shield-check"></i> Verify & Apply Discount';
+            btn.innerHTML = 'Verify';
             return;
         }
-
         if (!result.exists) {
-            // New customer — show success message and open govt verification site
+            // New customer — open govt verification site and show manual verify buttons
             document.getElementById('verifyIdNewMsg').style.display = 'block';
             const verifyUrl = type === 'senior'
                 ? 'https://www.ncsc.gov.ph/registration-verification'
                 : 'https://pwd.doh.gov.ph/tbl_pwd_id_verificationlist.php';
-            setTimeout(() => window.open(verifyUrl, '_blank', 'width=900,height=600'), 1000);
-        }
+            setTimeout(() => window.open(verifyUrl, '_blank', 'width=900,height=600'), 500);
 
-        // Mark as verified — allow Pay Now to proceed
-        weposVerified = true;
-
-        // Apply discount and close modal
-        setTimeout(() => {
+            // Switch to manual footer
+            document.getElementById('verifyIdFootInitial').style.display = 'none';
+            document.getElementById('verifyIdFootManual').style.display = 'flex';
+        } else {
+            // Exists — apply discount and close modal
+            weposVerified = true;
             document.getElementById('verifyIdModal').style.display = 'none';
             weposUpdateCart();
-        }, result.exists ? 0 : 1500);
+            
+            btn.disabled = false;
+            btn.innerHTML = 'Verify';
+        }
 
     } catch (e) {
         errEl.textContent = 'Network error. Please try again.';
         errEl.style.display = 'block';
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-shield-check"></i> Verify & Apply Discount';
+        btn.innerHTML = 'Verify';
+    }
+}
+
+function weposDeclineVerify() {
+    weposCancelVerifyId();
+}
+
+async function weposApproveVerify() {
+    const name      = document.getElementById('verifyIdName').value.trim();
+    const id_number = document.getElementById('verifyIdNumber').value.trim();
+    const type      = document.getElementById('verifyIdModal').getAttribute('data-type');
+    const errEl     = document.getElementById('verifyIdError');
+
+    try {
+        const res = await fetch('../function/save_customer_id', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, name, id_number })
+        });
+        const result = await res.json();
+        
+        if (result.success) {
+            weposVerified = true;
+            document.getElementById('verifyIdModal').style.display = 'none';
+            weposUpdateCart();
+        } else {
+            errEl.textContent = result.error || 'Failed to save customer.';
+            errEl.style.display = 'block';
+        }
+    } catch (e) {
+        errEl.textContent = 'Network error. Please try again.';
+        errEl.style.display = 'block';
     }
 }
 

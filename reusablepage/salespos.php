@@ -447,12 +447,16 @@ $isManager = in_array($userRole, ['owner', 'admin']);
             <div id="verifyIdError" class="text-danger" style="font-size:0.85rem; display:none; margin-bottom:0.5rem;"></div>
             
             <div id="verifyIdNewMsg" class="text-success" style="font-size:0.85rem; display:none; margin-bottom:0.5rem;">
-                <i class="fas fa-check-circle"></i> New customer recorded. Opening verification site...
+                <i class="fas fa-external-link-alt"></i> Opening verification site... Please verify the customer manually.
             </div>
         </div>
-        <div class="wepos-modal-foot">
+        <div class="wepos-modal-foot" id="verifyIdFootInitial">
             <button class="wepos-btn wepos-btn-outline" onclick="weposCancelVerifyId()">Cancel</button>
-            <button class="wepos-btn wepos-btn-primary" id="verifyIdBtn" onclick="weposSubmitVerifyId()">Verify & Apply</button>
+            <button class="wepos-btn wepos-btn-primary" id="verifyIdBtn" onclick="weposSubmitVerifyId()">Verify</button>
+        </div>
+        <div class="wepos-modal-foot" id="verifyIdFootManual" style="display:none;">
+            <button class="wepos-btn wepos-btn-outline" style="color: #dc2626; border-color: #dc2626;" onclick="weposDeclineVerify()">Decline</button>
+            <button class="wepos-btn wepos-btn-primary" style="background-color: #16a34a; border-color: #16a34a;" onclick="weposApproveVerify()">Verified</button>
         </div>
     </div>
 </div>
