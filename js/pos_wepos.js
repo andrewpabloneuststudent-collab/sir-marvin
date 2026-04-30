@@ -157,6 +157,11 @@ function weposRemoveItem(id) {
         `<strong>${item.name}</strong> &times; ${item.qty} &mdash; &#8369;${(item.price * item.qty).toFixed(2)}`;
     document.getElementById('voidAuthPin').value = '';
     document.getElementById('voidAuthError').style.display = 'none';
+    const btn = document.getElementById('voidAuthBtn');
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-trash"></i> Confirm Remove';
+    }
     document.getElementById('voidAuthModal').style.display = 'flex';
     setTimeout(() => document.getElementById('voidAuthPin')?.focus(), 100);
 }
@@ -860,8 +865,8 @@ async function weposSubmitVoidAuth() {
 
     errEl.style.display = 'none';
 
-    if (!/^\d{4,8}$/.test(pin)) {
-        errEl.textContent = 'Please enter a valid 4-8 digit Void PIN.';
+    if (!/^\d{7}$/.test(pin)) {
+        errEl.textContent = 'Please enter a valid 7-digit Void PIN.';
         errEl.style.display = 'block';
         return;
     }
