@@ -724,8 +724,8 @@ function weposOnDiscountChange(selectEl) {
         pendingDiscountIndex = selectEl.selectedIndex;
 
         const type = isSenior ? 'senior' : 'pwd';
-        document.getElementById('verifyIdTitle').textContent =
-            isSenior ? 'Senior Citizen Verification' : 'PWD Verification';
+        document.getElementById('verifyIdTitle').innerHTML =
+            isSenior ? '<i class="fas fa-id-card"></i> Senior Citizen Verification' : '<i class="fas fa-id-card"></i> PWD Verification';
         document.getElementById('verifyIdName').value = '';
         document.getElementById('verifyIdNumber').value = '';
         document.getElementById('verifyIdError').style.display = 'none';
@@ -783,12 +783,8 @@ async function weposSubmitVerifyId() {
             return;
         }
         if (!result.exists) {
-            // New customer — open govt verification site and show manual verify buttons
+            // New customer — show warning message and switch to manual footer
             document.getElementById('verifyIdNewMsg').style.display = 'block';
-            const verifyUrl = type === 'senior'
-                ? 'https://www.ncsc.gov.ph/registration-verification'
-                : 'https://pwd.doh.gov.ph/tbl_pwd_id_verificationlist.php';
-            setTimeout(() => window.open(verifyUrl, '_blank', 'width=900,height=600'), 500);
 
             // Switch to manual footer
             document.getElementById('verifyIdFootInitial').style.display = 'none';
@@ -813,6 +809,14 @@ async function weposSubmitVerifyId() {
 
 function weposDeclineVerify() {
     weposCancelVerifyId();
+}
+
+function weposOpenVerificationSite() {
+    const type = document.getElementById('verifyIdModal').getAttribute('data-type');
+    const verifyUrl = type === 'senior'
+        ? 'https://www.ncsc.gov.ph/registration-verification'
+        : 'https://pwd.doh.gov.ph/tbl_pwd_id_verificationlist.php';
+    window.open(verifyUrl, '_blank', 'width=900,height=600');
 }
 
 async function weposApproveVerify() {
