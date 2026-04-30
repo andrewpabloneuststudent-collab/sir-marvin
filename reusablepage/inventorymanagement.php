@@ -31,7 +31,7 @@ echo $product->renderExpiryAlert();
 ?>
 
 
-<link rel="stylesheet" href="../css/inventory.css">
+<link rel="stylesheet" href="../css/inventory.css?v=1.1">
 <link rel="stylesheet" href="../css/table.css">
 <style>
     .inventory-container {

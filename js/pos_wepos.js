@@ -3,6 +3,10 @@ let barcodeBuffer = '';
 let barcodeTimer = null;
 let currentPayMethod = 'Cash';
 let pendingOverride = null;
+let pendingVoid = null;           // stores cart item id pending void auth
+let pendingDiscountIndex = null;  // stores previous discount index if user cancels verify
+let weposVerified = false;        // tracks if Senior/PWD customer has been verified this session
+let weposLastReceiptData = null;  // stores last receipt data for printing
 
 document.addEventListener('DOMContentLoaded', () => {
     weposSetupScanner();
@@ -16,7 +20,7 @@ function weposSetupScanner() {
     document.addEventListener('keypress', function(e) {
         const active = document.activeElement;
         const isSearch = active && active.id === 'weposSearch';
-        const isModalInput = active && (active.id === 'weposTendered' || active.id === 'weposCustomer' || active.id === 'overrideReason' || active.id === 'overrideUsername' || active.id === 'overridePassword' || active.id === 'overridePercent');
+        const isModalInput = active && (active.id === 'weposTendered' || active.id === 'weposCustomer' || active.id === 'overrideReason' || active.id === 'overrideUsername' || active.id === 'overridePassword' || active.id === 'overridePercent' || active.id === 'verifyIdName' || active.id === 'verifyIdNumber' || active.id === 'voidAuthPin');
 
         if (isModalInput) return;
 
@@ -144,8 +148,17 @@ function weposUpdateQty(id, delta) {
 }
 
 function weposRemoveItem(id) {
-    delete weposCart[id];
-    weposUpdateCart();
+    const item = weposCart[id];
+    if (!item) return;
+
+    // Intercept with void authorization modal
+    pendingVoid = id;
+    document.getElementById('voidItemPreview').innerHTML =
+        `<strong>${item.name}</strong> &times; ${item.qty} &mdash; &#8369;${(item.price * item.qty).toFixed(2)}`;
+    document.getElementById('voidAuthPin').value = '';
+    document.getElementById('voidAuthError').style.display = 'none';
+    document.getElementById('voidAuthModal').style.display = 'flex';
+    setTimeout(() => document.getElementById('voidAuthPin')?.focus(), 100);
 }
 
 function weposClearCart() {
@@ -286,7 +299,6 @@ function weposSetTotals(sub, disc, dRate, vatExempt, vat, total) {
         rowVatEx.style.display = 'none';
     }
 
-    document.getElementById('calcVat').textContent = '₱' + vat.toFixed(2);
     document.getElementById('calcTotal').textContent = '₱' + total.toFixed(2);
     document.getElementById('btnTotalAmount').textContent = '₱' + total.toFixed(2);
 }
@@ -309,6 +321,8 @@ function weposSetupKeyboard() {
         if (e.key === 'Escape') {
             weposClosePayModal();
             weposCancelOverride();
+            weposCancelVerifyId();
+            weposCancelVoidAuth();
         }
     });
 }
@@ -316,6 +330,19 @@ function weposSetupKeyboard() {
 // ═════ PAYMENT MODAL ═════
 function weposOpenPayModal() {
     if (Object.keys(weposCart).length === 0) return;
+
+    // Gate: Senior/PWD requires verification before payment
+    const discountSelect = document.getElementById('weposDiscount');
+    const selOpt = discountSelect.options[discountSelect.selectedIndex];
+    const discountName = (selOpt?.text || '').toLowerCase();
+    const needsVerify = discountName.includes('senior') || discountName.includes('pwd');
+
+    if (needsVerify && !weposVerified) {
+        // Trigger the verification modal instead of pay modal
+        weposOnDiscountChange(discountSelect);
+        return;
+    }
+
     const totalText = document.getElementById('btnTotalAmount').textContent.replace('₱', '');
     const total = parseFloat(totalText);
     
@@ -494,7 +521,7 @@ function weposGenerateQuickCash(total) {
     const rounded = Math.ceil(total / 50) * 50;
     const amounts = [...new Set([total, rounded, rounded + 50, rounded + 100, 500, 1000])].filter(a => a >= total).slice(0, 4);
     
-    container.innerHTML = amounts.map(a => `<button type="button" onclick="weposSetCash(${a})">₱${a.toFixed(0)}</button>`).join('');
+    container.innerHTML = '';
 }
 
 function weposSetCash(amt) {
@@ -526,34 +553,308 @@ async function weposSubmitTransaction() {
     btn.disabled = true;
     btn.innerHTML = 'Processing...';
 
+    const discountSelect = document.getElementById('weposDiscount');
+    const selOpt = discountSelect.options[discountSelect.selectedIndex];
+    const dRate = parseFloat(selOpt.dataset.rate) || 0;
+    const isVatExempt = selOpt.dataset.exempt === '1';
+
     const items = Object.entries(weposCart).map(([id, item]) => ({
         id: parseInt(id), price: item.price, qty: item.qty
     }));
 
+    // Calculate receipt totals before clearing cart
+    let rawSubtotal = 0, totalDiscount = 0, totalVatExempt = 0, finalVat = 0;
+    Object.values(weposCart).forEach(item => {
+        rawSubtotal += item.price * item.qty;
+        const c = weposCalcItem(item, dRate, isVatExempt);
+        totalDiscount   += c.discount;
+        totalVatExempt  += c.vatExempt;
+        finalVat        += c.vatAmount;
+    });
+    const finalTotal = rawSubtotal - totalVatExempt - totalDiscount;
+    const tendered   = parseFloat(document.getElementById('weposTendered')?.value) || finalTotal;
+    const change     = currentPayMethod === 'Cash' ? tendered - finalTotal : 0;
+
     try {
-        const res = await fetch('../function/process_transaction.php', {
+        const res = await fetch('../function/process_transaction', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 items: items,
-                discount_id: document.getElementById('weposDiscount').value,
-                customer_name: document.getElementById('weposCustomer').value || 'Walk-in'
+                discount_id: discountSelect.value,
+                customer_name: 'Walk-in'
             })
         });
         
         const result = await res.json();
         
         if (result.success) {
-            alert('Transaction #' + String(result.transaction_id).padStart(6,'0') + ' completed successfully!');
-            weposClosePayModal();
-            location.reload();
+            // Close payment modal
+            document.getElementById('weposPayModal').style.display = 'none';
+
+            // Build receipt data
+            const receiptItems = Object.values(weposCart);
+            weposLastReceiptData = {
+                refNo:        String(result.transaction_id).padStart(6, '0'),
+                items:        receiptItems,
+                dRate,
+                isVatExempt,
+                rawSubtotal,
+                totalDiscount,
+                totalVatExempt,
+                finalVat,
+                finalTotal,
+                discountLabel: selOpt.text,
+                method:       currentPayMethod,
+                tendered,
+                change
+            };
+
+            // Show receipt
+            weposShowReceipt(weposLastReceiptData);
+
+            // Reset state
+            weposCart = {};
+            weposVerified = false;
         } else {
             alert('Payment Error: ' + result.error);
+            btn.disabled = false;
+            btn.innerHTML = 'Confirm Payment';
         }
     } catch (err) {
-        alert('Network Error');
+        alert('Network Error. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = 'Confirm Payment';
     }
-    
-    btn.disabled = false;
-    btn.innerHTML = 'Confirm Payment';
+}
+
+// ═════ RECEIPT ═════
+function weposShowReceipt(data) {
+    const now = new Date();
+    document.getElementById('receiptDateTime').textContent =
+        now.toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' }) + ' ' +
+        now.toLocaleTimeString('en-PH', { hour:'2-digit', minute:'2-digit' });
+    document.getElementById('receiptRefNo').textContent = '#' + data.refNo;
+
+    // Items list
+    let itemsHtml = '';
+    data.items.forEach(item => {
+        const c = weposCalcItem(item, data.dRate, data.isVatExempt);
+        itemsHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:8px;">
+                ${item.name}<br>
+                <span style="font-size:11px; color:#94a3b8;">${item.qty} x &#8369;${item.price.toFixed(2)}</span>
+            </div>
+            <div style="font-weight:600;">&#8369;${c.final.toFixed(2)}</div>
+        </div>`;
+    });
+    document.getElementById('receiptItems').innerHTML = itemsHtml;
+
+    // Totals
+    document.getElementById('receiptSubtotal').textContent  = '\u20b1' + data.rawSubtotal.toFixed(2);
+    document.getElementById('receiptVat').textContent       = '\u20b1' + data.finalVat.toFixed(2);
+    document.getElementById('receiptTotal').textContent     = '\u20b1' + data.finalTotal.toFixed(2);
+    document.getElementById('receiptMethod').textContent    = data.method;
+
+    const discRow = document.getElementById('receiptDiscountRow');
+    if (data.totalDiscount > 0) {
+        discRow.style.display = 'flex';
+        document.getElementById('receiptDiscLabel').textContent = data.discountLabel;
+        document.getElementById('receiptDiscount').textContent  = '-\u20b1' + data.totalDiscount.toFixed(2);
+    } else {
+        discRow.style.display = 'none';
+    }
+
+    const vatExRow = document.getElementById('receiptVatExRow');
+    if (data.totalVatExempt > 0) {
+        vatExRow.style.display = 'flex';
+        document.getElementById('receiptVatEx').textContent = '-\u20b1' + data.totalVatExempt.toFixed(2);
+    } else {
+        vatExRow.style.display = 'none';
+    }
+
+    const tenderedRow = document.getElementById('receiptTenderedRow');
+    const changeRow   = document.getElementById('receiptChangeRow');
+    if (data.method === 'Cash') {
+        tenderedRow.style.display = 'flex';
+        changeRow.style.display   = 'flex';
+        document.getElementById('receiptTendered').textContent = '\u20b1' + data.tendered.toFixed(2);
+        document.getElementById('receiptChange').textContent   = '\u20b1' + data.change.toFixed(2);
+    } else {
+        tenderedRow.style.display = 'none';
+        changeRow.style.display   = 'none';
+    }
+
+    document.getElementById('weposReceiptModal').style.display = 'flex';
+}
+
+function weposCloseReceipt() {
+    document.getElementById('weposReceiptModal').style.display = 'none';
+    location.reload();
+}
+
+function weposPrintReceipt() {
+    const content = document.getElementById('weposReceiptPrint').innerHTML;
+    const win = window.open('', '_blank', 'width=320,height=600');
+    win.document.write(`
+        <html><head><title>Receipt</title>
+        <style>
+            body { font-family: 'Courier New', monospace; font-size: 13px; width: 280px; margin: 0 auto; padding: 10px; }
+            @media print { body { margin: 0; } }
+        </style></head>
+        <body>${content}</body></html>
+    `);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); win.close(); }, 300);
+}
+// ═════ SENIOR / PWD DISCOUNT INTERCEPT ═════
+function weposOnDiscountChange(selectEl) {
+    const selOpt = selectEl.options[selectEl.selectedIndex];
+    const discountName = selOpt.text.toLowerCase();
+
+    const isSenior = discountName.includes('senior');
+    const isPwd    = discountName.includes('pwd');
+
+    // Reset verification whenever discount changes
+    weposVerified = false;
+
+    if (isSenior || isPwd) {
+        // Save previous index so we can restore on cancel
+        pendingDiscountIndex = selectEl.selectedIndex;
+
+        const type = isSenior ? 'senior' : 'pwd';
+        document.getElementById('verifyIdTitle').textContent =
+            isSenior ? 'Senior Citizen Verification' : 'PWD Verification';
+        document.getElementById('verifyIdName').value = '';
+        document.getElementById('verifyIdNumber').value = '';
+        document.getElementById('verifyIdError').style.display = 'none';
+        document.getElementById('verifyIdNewMsg').style.display = 'none';
+        document.getElementById('verifyIdModal').setAttribute('data-type', type);
+        document.getElementById('verifyIdModal').setAttribute('data-discount-index', selectEl.selectedIndex);
+        document.getElementById('verifyIdModal').style.display = 'flex';
+        setTimeout(() => document.getElementById('verifyIdName')?.focus(), 100);
+    } else {
+        weposUpdateCart();
+    }
+}
+
+function weposCancelVerifyId() {
+    // Revert discount dropdown to None (index 0)
+    const sel = document.getElementById('weposDiscount');
+    if (sel) sel.selectedIndex = 0;
+    document.getElementById('verifyIdModal').style.display = 'none';
+    weposUpdateCart();
+}
+
+async function weposSubmitVerifyId() {
+    const name      = document.getElementById('verifyIdName').value.trim();
+    const id_number = document.getElementById('verifyIdNumber').value.trim();
+    const type      = document.getElementById('verifyIdModal').getAttribute('data-type');
+    const errEl     = document.getElementById('verifyIdError');
+    const btn       = document.getElementById('verifyIdBtn');
+
+    errEl.style.display = 'none';
+    document.getElementById('verifyIdNewMsg').style.display = 'none';
+
+    if (!name)      { errEl.textContent = 'Please enter the customer name.';  errEl.style.display = 'block'; return; }
+    if (!id_number) { errEl.textContent = 'Please enter the ID number.'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+
+    try {
+        const res = await fetch('../function/verify_customer_id', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, name, id_number })
+        });
+        const result = await res.json();
+
+        if (result.error) {
+            errEl.textContent = result.error;
+            errEl.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-shield-check"></i> Verify & Apply Discount';
+            return;
+        }
+
+        if (!result.exists) {
+            // New customer — show success message and open govt verification site
+            document.getElementById('verifyIdNewMsg').style.display = 'block';
+            const verifyUrl = type === 'senior'
+                ? 'https://www.ncsc.gov.ph/registration-verification'
+                : 'https://pwd.doh.gov.ph/tbl_pwd_id_verificationlist.php';
+            setTimeout(() => window.open(verifyUrl, '_blank', 'width=900,height=600'), 1000);
+        }
+
+        // Mark as verified — allow Pay Now to proceed
+        weposVerified = true;
+
+        // Apply discount and close modal
+        setTimeout(() => {
+            document.getElementById('verifyIdModal').style.display = 'none';
+            weposUpdateCart();
+        }, result.exists ? 0 : 1500);
+
+    } catch (e) {
+        errEl.textContent = 'Network error. Please try again.';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-shield-check"></i> Verify & Apply Discount';
+    }
+}
+
+// ═════ VOID AUTH MODAL (CART ITEM REMOVE) ═════
+function weposCancelVoidAuth() {
+    pendingVoid = null;
+    document.getElementById('voidAuthModal').style.display = 'none';
+}
+
+async function weposSubmitVoidAuth() {
+    const pin    = document.getElementById('voidAuthPin').value.trim();
+    const errEl  = document.getElementById('voidAuthError');
+    const btn    = document.getElementById('voidAuthBtn');
+
+    errEl.style.display = 'none';
+
+    if (!/^\d{4,8}$/.test(pin)) {
+        errEl.textContent = 'Please enter a valid 4-8 digit Void PIN.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authorizing...';
+
+    try {
+        const res = await fetch('../function/verify_void_pin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ void_pin: pin })
+        });
+        const result = await res.json();
+
+        if (!result.success) {
+            errEl.textContent = result.error || 'Invalid Void PIN.';
+            errEl.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-trash"></i> Confirm Remove';
+            return;
+        }
+
+        // Authorized — remove the item
+        if (pendingVoid && weposCart[pendingVoid]) {
+            delete weposCart[pendingVoid];
+        }
+        pendingVoid = null;
+        document.getElementById('voidAuthModal').style.display = 'none';
+        weposUpdateCart();
+
+    } catch (e) {
+        errEl.textContent = 'Network error. Please try again.';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-trash"></i> Confirm Remove';
+    }
 }

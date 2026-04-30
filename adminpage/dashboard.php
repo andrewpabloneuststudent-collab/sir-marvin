@@ -98,11 +98,7 @@ if (isset($_GET['added'])) {
             <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'inventory' ? 'show active' : '' ?>" id="v-pills-inventory">
                 <?php include __DIR__ . "/../reusablepage/inventorymanagement.php"; ?>
             </div>
-<<<<<<< HEAD
-           <div class="tab-pane fade <?= $activeTab === 'sales' ? 'show active' : '' ?>" id="v-pills-sales" style="padding: 0; height: 100%; overflow: hidden;">
-=======
             <div class="tab-pane fade <?= $activeTab === 'sales' ? 'show active' : '' ?>" id="v-pills-sales" style="padding: 0; height: 100%; overflow: hidden;">
->>>>>>> c624eec1403e8fa1bfb35f9463b19904af1f5a0d
                 <?php include __DIR__ . "/../reusablepage/salespos.php"; ?>
             </div>
             <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'reports' ? 'show active' : '' ?>" id="v-pills-reports">

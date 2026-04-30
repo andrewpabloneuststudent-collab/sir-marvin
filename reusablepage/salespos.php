@@ -103,12 +103,9 @@ $isManager = in_array($userRole, ['owner', 'admin']);
     <!-- ═══════════════ RIGHT PANEL: CART & CHECKOUT ═══════════════ -->
     <div class="wepos-right">
         
-        <!-- Customer & Tabs -->
+        <!-- Cart Header -->
         <div class="wepos-cart-header">
-            <div class="wepos-customer-select">
-                <i class="fas fa-user-plus"></i>
-                <input type="text" id="weposCustomer" placeholder="Walk-in Customer">
-            </div>
+            <span style="font-size:13px; font-weight:600; color:#50575e;"><i class="fas fa-shopping-cart me-1"></i> Current Order</span>
             <div class="wepos-cart-actions">
                 <button class="wepos-btn wepos-btn-icon text-danger" title="Clear Cart (F8)" onclick="weposClearCart()">
                     <i class="fas fa-trash-alt"></i>
@@ -146,7 +143,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
             <!-- Discount Selection -->
             <div class="wepos-discount-row">
                 <div class="wepos-discount-label"><i class="fas fa-tags text-primary"></i> Apply Discount</div>
-                <select id="weposDiscount" class="wepos-select" onchange="weposUpdateCart()">
+                <select id="weposDiscount" class="wepos-select" onchange="weposOnDiscountChange(this)">
                     <?php foreach ($discounts as $d): ?>
                         <option value="<?= $d['id'] ?>" 
                                 data-rate="<?= $d['discount_rate'] ?>" 
@@ -172,10 +169,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
                     <span>VAT Exemption</span>
                     <span id="calcVatExempt">-₱0.00</span>
                 </div>
-                <div class="wepos-calc-row text-muted">
-                    <span>VAT (12%)</span>
-                    <span id="calcVat">₱0.00</span>
-                </div>
+
                 <div class="wepos-calc-row total-row">
                     <span>Total Due</span>
                     <span class="wepos-grand-total" id="calcTotal">₱0.00</span>
@@ -209,15 +203,11 @@ $isManager = in_array($userRole, ['owner', 'admin']);
             <!-- Checkout Items with Override -->
             <div id="weposCheckoutItems" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #e0e0e0; border-radius: 4px; display: none;"></div>
 
-            <div class="wepos-pay-methods">
-                <button class="wepos-pay-method active" onclick="weposSelectMethod(this, 'Cash')"><i class="fas fa-money-bill-wave"></i> Cash</button>
-                <button class="wepos-pay-method" onclick="weposSelectMethod(this, 'Card')"><i class="fas fa-credit-card"></i> Card</button>
-                <button class="wepos-pay-method" onclick="weposSelectMethod(this, 'GCash')"><i class="fas fa-mobile-alt"></i> GCash</button>
-            </div>
+
 
             <div class="wepos-tendered-box">
                 <label>Amount Tendered (₱)</label>
-                <input type="number" id="weposTendered" class="wepos-input-lg" placeholder="0.00" oninput="weposCalcChange()" autofocus>
+                <input type="number" id="weposTendered" class="wepos-input-lg" placeholder="" oninput="weposCalcChange()" autofocus>
                 
                 <div class="wepos-quick-cash" id="weposQuickCash"></div>
             </div>
@@ -269,8 +259,207 @@ $isManager = in_array($userRole, ['owner', 'admin']);
     </div>
 </div>
 
+<!-- ═══════════════ SENIOR/PWD VERIFICATION MODAL ═══════════════ -->
+<div class="wepos-modal-overlay" id="verifyIdModal" style="display:none;" onclick="event.stopPropagation()">
+    <div class="wepos-modal" onclick="event.stopPropagation()" style="max-width:420px;">
+        <div class="wepos-modal-head" style="background: #e8f4fd;">
+            <h5 style="color: #1a5276;"><i class="fas fa-id-card"></i> <span id="verifyIdTitle">Customer ID Verification</span></h5>
+            <button onclick="weposCancelVerifyId()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="wepos-modal-body">
+            <p class="text-muted" style="font-size:0.88rem; margin-bottom:1rem;">
+                Please enter the customer's name and ID number to apply the discount.
+                New customers will be saved to our records and redirected to the official verification site.
+            </p>
+            <div style="margin-bottom:0.75rem;">
+                <label style="font-size:0.85rem; font-weight:600; margin-bottom:0.25rem; display:block;">Customer Name</label>
+                <input type="text" id="verifyIdName" placeholder="e.g. Juan Dela Cruz" autocomplete="off"
+                    style="width:100%; border-radius:4px; border:1px solid #8c8f94; padding:0.5rem; font-size:0.9rem;">
+            </div>
+            <div style="margin-bottom:0.75rem;">
+                <label style="font-size:0.85rem; font-weight:600; margin-bottom:0.25rem; display:block;">ID Number</label>
+                <input type="text" id="verifyIdNumber" placeholder="e.g. 12-3456789" autocomplete="off"
+                    style="width:100%; border-radius:4px; border:1px solid #8c8f94; padding:0.5rem; font-size:0.9rem;">
+            </div>
+            <div id="verifyIdError" class="text-danger" style="font-size:0.85rem; display:none; margin-bottom:0.5rem;"></div>
+            <div id="verifyIdNewMsg" style="display:none; background:#d4edda; color:#155724; border-radius:4px; padding:0.5rem 0.75rem; font-size:0.85rem; margin-bottom:0.5rem;">
+                <i class="fas fa-check-circle"></i> New customer saved! Opening verification site...
+            </div>
+        </div>
+        <div class="wepos-modal-foot">
+            <button class="wepos-btn wepos-btn-outline" onclick="weposCancelVerifyId()">Cancel</button>
+            <button class="wepos-btn wepos-btn-primary" id="verifyIdBtn" onclick="weposSubmitVerifyId()">
+                <i class="fas fa-shield-check"></i> Verify & Apply Discount
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ VOID (CART REMOVE) AUTHORIZATION MODAL ═══════════════ -->
+<div class="wepos-modal-overlay" id="voidAuthModal" style="display:none;" onclick="event.stopPropagation()">
+    <div class="wepos-modal" onclick="event.stopPropagation()" style="max-width:380px;">
+        <div class="wepos-modal-head" style="background: #fdf0f0;">
+            <h5 style="color: #922b21;"><i class="fas fa-trash-alt"></i> Remove Item from Cart</h5>
+            <button onclick="weposCancelVoidAuth()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="wepos-modal-body">
+            <div id="voidItemPreview" style="background:#f8f9fa; border:1px solid #dcdcde; padding:10px 14px; border-radius:4px; font-size:13px; margin-bottom:14px;"></div>
+            <p class="text-muted" style="font-size:0.88rem; margin-bottom:1rem;">
+                Enter the <strong>8-digit Void PIN</strong> of an Owner or Admin to authorize this removal.
+            </p>
+            <div style="margin-bottom:0.75rem;">
+                <label style="font-size:0.85rem; font-weight:600; margin-bottom:0.25rem; display:block;">Void PIN</label>
+                <input type="password" id="voidAuthPin"
+                    placeholder="••••••••"
+                    maxlength="8"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    style="width:100%; border-radius:4px; border:1px solid #8c8f94; padding:0.6rem; font-size:1.2rem; letter-spacing:4px; text-align:center;">
+            </div>
+            <div id="voidAuthError" class="text-danger" style="font-size:0.85rem; display:none;"></div>
+        </div>
+        <div class="wepos-modal-foot">
+            <button class="wepos-btn wepos-btn-outline" onclick="weposCancelVoidAuth()">Cancel</button>
+            <button class="wepos-btn" id="voidAuthBtn" onclick="weposSubmitVoidAuth()"
+                style="background:#c0392b; color:#fff; border:none;">
+                <i class="fas fa-trash"></i> Confirm Remove
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ VOID AUTH MODAL ═══════════════ -->
+<div class="wepos-modal-overlay" id="voidAuthModal" style="display:none;" onclick="event.stopPropagation()">
+    <div class="wepos-modal" onclick="event.stopPropagation()">
+        <div class="wepos-modal-head" style="background: #fee2e2; border-bottom: 1px solid #fecaca;">
+            <h5 style="color: #991b1b;"><i class="fas fa-trash-alt"></i> Manager Void Required</h5>
+            <button onclick="weposCancelVoidAuth()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="wepos-modal-body">
+            <p class="text-muted" style="font-size:0.9rem; margin-bottom:1rem;">
+                Please enter the Manager Void PIN to remove this item from the cart.
+            </p>
+            <div style="margin-bottom:0.75rem;">
+                <input type="password" id="voidAuthPin" placeholder="Void PIN" style="width:100%; border-radius:4px; border:1px solid #8c8f94; padding:0.5rem; font-size:1.2rem; text-align:center; letter-spacing:4px;" autocomplete="off" maxlength="8">
+            </div>
+            <div id="voidAuthError" class="text-danger" style="font-size:0.85rem; display:none; margin-bottom:0.5rem; text-align:center;"></div>
+        </div>
+        <div class="wepos-modal-foot">
+            <button class="wepos-btn wepos-btn-outline" onclick="weposCancelVoidAuth()">Cancel</button>
+            <button class="wepos-btn wepos-btn-primary" style="background-color: #dc2626; border-color: #dc2626;" id="voidAuthBtn" onclick="weposSubmitVoidAuth()"><i class="fas fa-trash"></i> Confirm Remove</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const WEPOS_ROLE = '<?= $userRole ?>';
     const WEPOS_IS_MANAGER = <?= $isManager ? 'true' : 'false' ?>;
 </script>
-<script src="../js/pos_wepos.js"></script>
+
+<!-- ═══════════════ RECEIPT MODAL ═══════════════ -->
+<div class="wepos-modal-overlay" id="weposReceiptModal" style="display:none;" onclick="event.stopPropagation()">
+    <div class="wepos-modal" onclick="event.stopPropagation()" style="max-width:400px; border-radius:8px;">
+        <div class="wepos-modal-head" style="background:#f0fdf4; border-bottom:1px solid #bbf7d0;">
+            <h5 style="color:#15803d;"><i class="fas fa-receipt"></i> Payment Successful</h5>
+            <button onclick="weposCloseReceipt()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="wepos-modal-body" id="weposReceiptBody" style="padding:0;">
+
+            <!-- Printable Receipt -->
+            <div id="weposReceiptPrint" style="padding:20px; font-family:'Courier New',monospace; font-size:13px;">
+                <div style="text-align:center; margin-bottom:12px;">
+                    <div style="font-size:16px; font-weight:700;">MMB'S DRUGSTORE</div>
+                    <div style="font-size:11px; color:#64748b;">Official Receipt</div>
+                    <div style="font-size:11px; color:#64748b;" id="receiptDateTime"></div>
+                </div>
+                <div style="border-top:1px dashed #cbd5e1; border-bottom:1px dashed #cbd5e1; padding:6px 0; margin-bottom:10px;">
+                    <span style="color:#64748b;">Ref #:</span> <strong id="receiptRefNo"></strong>
+                </div>
+                <div id="receiptItems" style="margin-bottom:10px;"></div>
+                <div style="border-top:1px dashed #cbd5e1; padding-top:8px; font-size:12px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+                        <span>Subtotal</span><span id="receiptSubtotal"></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:3px; color:#dc2626;" id="receiptDiscountRow">
+                        <span>Discount (<span id="receiptDiscLabel"></span>)</span><span id="receiptDiscount"></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:3px; color:#64748b;" id="receiptVatExRow">
+                        <span>VAT Exempt</span><span id="receiptVatEx"></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:3px; color:#64748b;">
+                        <span>VAT (12%)</span><span id="receiptVat"></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:15px; font-weight:700; border-top:1px solid #e2e8f0; padding-top:6px; margin-top:4px;">
+                        <span>TOTAL</span><span id="receiptTotal" style="color:#15803d;"></span>
+                    </div>
+                </div>
+                <div style="border-top:1px dashed #cbd5e1; margin-top:10px; padding-top:8px; font-size:12px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+                        <span>Payment Method</span><span id="receiptMethod"></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:3px;" id="receiptTenderedRow">
+                        <span>Cash Tendered</span><span id="receiptTendered"></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-weight:700;" id="receiptChangeRow">
+                        <span>Change</span><span id="receiptChange"></span>
+                    </div>
+                </div>
+                <div style="text-align:center; margin-top:14px; font-size:11px; color:#94a3b8;">
+                    Thank you for your purchase!<br>
+                    Please come again.
+                </div>
+            </div>
+
+        </div>
+        <div class="wepos-modal-foot" style="gap:10px;">
+            <button class="wepos-btn wepos-btn-outline" onclick="weposPrintReceipt()">
+                <i class="fas fa-print"></i> Print Receipt
+            </button>
+            <button class="wepos-btn wepos-btn-primary" onclick="weposCloseReceipt()">
+                Done
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ SENIOR/PWD VERIFY MODAL ═══════════════ -->
+<div class="wepos-modal-overlay" id="verifyIdModal" style="display:none;" onclick="event.stopPropagation()">
+    <div class="wepos-modal" onclick="event.stopPropagation()">
+        <div class="wepos-modal-head" style="background: #eef2ff; border-bottom: 1px solid #c7d2fe;">
+            <h5 style="color: #3730a3;" id="verifyIdTitle"><i class="fas fa-id-card"></i> ID Verification</h5>
+            <button onclick="weposCancelVerifyId()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="wepos-modal-body">
+            <p class="text-muted" style="font-size:0.9rem; margin-bottom:1rem;">
+                Please enter the customer's details to verify their ID.
+            </p>
+            
+            <div style="margin-bottom: 0.75rem;">
+                <label style="font-size:0.85rem; font-weight:600; margin-bottom:0.25rem; display:block;">Full Name</label>
+                <input type="text" id="verifyIdName" placeholder="Juan Dela Cruz" style="width:100%; border-radius:4px; border:1px solid #8c8f94; padding:0.5rem; font-size:1rem;" autocomplete="off">
+            </div>
+            
+            <div style="margin-bottom:0.75rem;">
+                <label style="font-size:0.85rem; font-weight:600; margin-bottom:0.25rem; display:block;">ID Number</label>
+                <input type="text" id="verifyIdNumber" placeholder="XXXX-XXXX-XXXX" style="width:100%; border-radius:4px; border:1px solid #8c8f94; padding:0.5rem; font-size:1rem;" autocomplete="off">
+            </div>
+            
+            <div id="verifyIdError" class="text-danger" style="font-size:0.85rem; display:none; margin-bottom:0.5rem;"></div>
+            
+            <div id="verifyIdNewMsg" class="text-success" style="font-size:0.85rem; display:none; margin-bottom:0.5rem;">
+                <i class="fas fa-check-circle"></i> New customer recorded. Opening verification site...
+            </div>
+        </div>
+        <div class="wepos-modal-foot">
+            <button class="wepos-btn wepos-btn-outline" onclick="weposCancelVerifyId()">Cancel</button>
+            <button class="wepos-btn wepos-btn-primary" id="verifyIdBtn" onclick="weposSubmitVerifyId()">Verify & Apply</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    const WEPOS_ROLE = '<?= $userRole ?>';
+    const WEPOS_IS_MANAGER = <?= $isManager ? 'true' : 'false' ?>;
+</script>
+<script src="../js/pos_wepos.js"></script>
