@@ -16,7 +16,7 @@ $classifications = $product->getClassifications();
     <div class="modal-dialog">
         <div class="modal-content">
 
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 <div class="modal-header">
                     <h5 class="modal-title">Add Product</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -90,6 +90,12 @@ $classifications = $product->getClassifications();
                     <div class="mb-2">
                         <label>Expiry Date</label>
                         <input type="date" name="expiry_date" class="form-control">
+                    </div>
+
+                    <!-- IMAGE -->
+                    <div class="mb-2">
+                        <label>Product Image</label>
+                        <input type="file" name="product_image" class="form-control" accept="image/*">
                     </div>
 
                 </div>

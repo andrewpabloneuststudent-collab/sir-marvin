@@ -121,6 +121,16 @@ if ($product->addProduct()) {
                     Configure which categories qualify for VAT, Senior Citizen, and PWD discounts.<br>
                     These settings are automatically applied at the POS.
                 </p>
+                <div class="row g-2 mb-3">
+                    <div class="col">
+                        <input type="text" id="newCategoryName" class="form-control" placeholder="New Category Name (e.g. Vitamins)">
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-success" onclick="pmAddNewCategory(this)">
+                            <i class="fas fa-plus"></i> Add Category
+                        </button>
+                    </div>
+                </div>
                 <table class="table table-hover align-middle" id="catSettingsTable">
                     <thead class="table-light">
                         <tr>
@@ -202,6 +212,39 @@ async function pmSaveCat(id, btn) {
     } catch(e) {
         alert('Network error');
         btn.innerHTML = origText; btn.disabled = false;
+    }
+}
+
+async function pmAddNewCategory(btn) {
+    const input = document.getElementById('newCategoryName');
+    const categoryName = input.value.trim();
+    if (!categoryName) {
+        alert('Please enter a category name.');
+        return;
+    }
+
+    const origText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch('../function/category_settings.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ action: 'add_category', category_name: categoryName })
+        });
+        const data = await res.json();
+        if (data.success) {
+            input.value = '';
+            pmLoadCatSettings(); // Reload table
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch(e) {
+        alert('Network error');
+    } finally {
+        btn.innerHTML = origText;
+        btn.disabled = false;
     }
 }
 </script>

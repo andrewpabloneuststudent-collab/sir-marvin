@@ -15,6 +15,10 @@ Hoy Neil! Kailangan mo i-update yung database mo para gumana yung bagong **Disco
    `scratch/specific_tables_export.sql`
    (Ito ay para sa `product_categories` at `override_log` lang para hindi mag-conflict sa ibang tables mo).
 
+   **BAGO**: Kung kailangan mo i-update yung rules para sa VAT/Discount per item type, i-import mo ito:
+   `scratch/product_classifications_export.sql`
+   (Ito yung nag-seset kung aling items ang discountable at vatable).
+
    **Ano ang ginagawa nito?**
    - Nagdadagdag ng `has_vat`, `senior_discount`, at `pwd_discount` columns sa `product_categories` table.
    - Gagawa ng bagong table na `override_log` para ma-track kung sino yung nag-aapprove ng discount.

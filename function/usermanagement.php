@@ -160,6 +160,91 @@ class UserManagement
         }
     }
 
+    public function updateUserSystem(int $userId, array $data): array
+{
+    if (!$userId) {
+        return ['success' => false, 'message' => 'Invalid user ID'];
+    }
+
+    $d = $this->input($data);
+
+    if (!$d['firstname'] || !$d['lastname'] || !$d['email']) {
+        return ['success' => false, 'message' => 'Required fields missing'];
+    }
+
+    try {
+        $this->con->beginTransaction();
+
+        // =========================
+        // UPDATE USERS TABLE
+        // =========================
+        if (!empty($data['password'])) {
+
+            // ✅ HASH the new password
+            $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
+
+            $stmt = $this->con->prepare("
+                UPDATE users 
+                SET username = ?, password = ?, void_password = ?
+                WHERE id = ?
+            ");
+
+            $stmt->execute([
+                $d['username'],
+                $hashedPassword,          // hashed password
+                $data['void_password'],   // plain (as you requested)
+                $userId
+            ]);
+
+        } else {
+
+            // No password update
+            $stmt = $this->con->prepare("
+                UPDATE users 
+                SET username = ?
+                WHERE id = ?
+            ");
+
+            $stmt->execute([
+                $d['username'],
+                $userId
+            ]);
+        }
+
+        // =========================
+        // UPDATE USERS INFO TABLE
+        // =========================
+        $stmt = $this->con->prepare("
+            UPDATE users_info SET 
+            firstname=?, middlename=?, lastname=?, age=?, email=?, contactnumber=?, 
+            street=?, barangay=?, city=?, province=?, country=?
+            WHERE user_id=?
+        ");
+
+        $stmt->execute([
+            $d['firstname'],
+            $d['middlename'],
+            $d['lastname'],
+            $d['age'] ?? null,
+            $d['email'],
+            $d['contactnumber'],
+            $d['street'] ?? null,
+            $d['barangay'] ?? null,
+            $d['city'] ?? null,
+            $d['province'] ?? null,
+            $d['country'] ?? null,
+            $userId
+        ]);
+
+        $this->con->commit();
+
+        return ['success' => true, 'message' => 'User updated successfully'];
+
+    } catch (\Throwable $e) {
+        $this->con->rollBack();
+        return ['success' => false, 'message' => $e->getMessage()];
+    }
+}
     // 🔥 DELETE USER
     public function deleteUser(int $userId): array
     {
