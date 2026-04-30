@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../conn/database.php';
 
 try {
-    $stmt = $db->prepare("UPDATE users SET void_pin = '1234567' WHERE role IN ('admin', 'owner')");
+    $stmt = $db->prepare("UPDATE users SET void_pin = '1234567' WHERE account_type IN ('admin', 'owner')");
     $stmt->execute();
     echo "Successfully updated all Admin and Owner void PINs to 1234567.\n";
 } catch (PDOException $e) {
