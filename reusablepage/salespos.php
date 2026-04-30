@@ -259,41 +259,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
     </div>
 </div>
 
-<!-- ═══════════════ SENIOR/PWD VERIFICATION MODAL ═══════════════ -->
-<div class="wepos-modal-overlay" id="verifyIdModal" style="display:none;" onclick="event.stopPropagation()">
-    <div class="wepos-modal" onclick="event.stopPropagation()" style="max-width:420px;">
-        <div class="wepos-modal-head" style="background: #e8f4fd;">
-            <h5 style="color: #1a5276;"><i class="fas fa-id-card"></i> <span id="verifyIdTitle">Customer ID Verification</span></h5>
-            <button onclick="weposCancelVerifyId()"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="wepos-modal-body">
-            <p class="text-muted" style="font-size:0.88rem; margin-bottom:1rem;">
-                Please enter the customer's name and ID number to apply the discount.
-                New customers will be saved to our records and redirected to the official verification site.
-            </p>
-            <div style="margin-bottom:0.75rem;">
-                <label style="font-size:0.85rem; font-weight:600; margin-bottom:0.25rem; display:block;">Customer Name</label>
-                <input type="text" id="verifyIdName" placeholder="e.g. Juan Dela Cruz" autocomplete="off"
-                    style="width:100%; border-radius:4px; border:1px solid #8c8f94; padding:0.5rem; font-size:0.9rem;">
-            </div>
-            <div style="margin-bottom:0.75rem;">
-                <label style="font-size:0.85rem; font-weight:600; margin-bottom:0.25rem; display:block;">ID Number</label>
-                <input type="text" id="verifyIdNumber" placeholder="e.g. 12-3456789" autocomplete="off"
-                    style="width:100%; border-radius:4px; border:1px solid #8c8f94; padding:0.5rem; font-size:0.9rem;">
-            </div>
-            <div id="verifyIdError" class="text-danger" style="font-size:0.85rem; display:none; margin-bottom:0.5rem;"></div>
-            <div id="verifyIdNewMsg" style="display:none; background:#d4edda; color:#155724; border-radius:4px; padding:0.5rem 0.75rem; font-size:0.85rem; margin-bottom:0.5rem;">
-                <i class="fas fa-check-circle"></i> New customer saved! Opening verification site...
-            </div>
-        </div>
-        <div class="wepos-modal-foot">
-            <button class="wepos-btn wepos-btn-outline" onclick="weposCancelVerifyId()">Cancel</button>
-            <button class="wepos-btn wepos-btn-primary" id="verifyIdBtn" onclick="weposSubmitVerifyId()">
-                <i class="fas fa-shield-check"></i> Verify & Apply Discount
-            </button>
-        </div>
-    </div>
-</div>
+
 
 <!-- ═══════════════ VOID (CART REMOVE) AUTHORIZATION MODAL ═══════════════ -->
 <div class="wepos-modal-overlay" id="voidAuthModal" style="display:none;" onclick="event.stopPropagation()">
@@ -446,17 +412,20 @@ $isManager = in_array($userRole, ['owner', 'admin']);
             
             <div id="verifyIdError" class="text-danger" style="font-size:0.85rem; display:none; margin-bottom:0.5rem;"></div>
             
-            <div id="verifyIdNewMsg" class="text-success" style="font-size:0.85rem; display:none; margin-bottom:0.5rem;">
-                <i class="fas fa-external-link-alt"></i> Opening verification site... Please verify the customer manually.
+            <div id="verifyIdNewMsg" class="text-warning" style="font-size:0.85rem; display:none; margin-bottom:0.5rem; color: #d97706; background: #fef3c7; padding: 8px; border-radius: 4px; border-left: 3px solid #f59e0b;">
+                <i class="fas fa-exclamation-triangle"></i> This ID has not been verified yet for a discount. Please check the website.
             </div>
         </div>
         <div class="wepos-modal-foot" id="verifyIdFootInitial">
             <button class="wepos-btn wepos-btn-outline" onclick="weposCancelVerifyId()">Cancel</button>
             <button class="wepos-btn wepos-btn-primary" id="verifyIdBtn" onclick="weposSubmitVerifyId()">Verify</button>
         </div>
-        <div class="wepos-modal-foot" id="verifyIdFootManual" style="display:none;">
+        <div class="wepos-modal-foot" id="verifyIdFootManual" style="display:none; justify-content: space-between;">
             <button class="wepos-btn wepos-btn-outline" style="color: #dc2626; border-color: #dc2626;" onclick="weposDeclineVerify()">Decline</button>
-            <button class="wepos-btn wepos-btn-primary" style="background-color: #16a34a; border-color: #16a34a;" onclick="weposApproveVerify()">Verified</button>
+            <div style="display:flex; gap: 8px;">
+                <button class="wepos-btn wepos-btn-primary" style="background-color: #3b82f6; border-color: #3b82f6;" onclick="weposOpenVerificationSite()"><i class="fas fa-external-link-alt"></i> Check Website</button>
+                <button class="wepos-btn wepos-btn-primary" style="background-color: #16a34a; border-color: #16a34a;" onclick="weposApproveVerify()"><i class="fas fa-check"></i> Accept</button>
+            </div>
         </div>
     </div>
 </div>
