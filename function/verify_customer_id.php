@@ -58,10 +58,7 @@ try {
         exit;
     }
 
-    // New customer — save and signal client to open verification site
-    $stmt = $db->prepare("INSERT INTO `$table` (customer_name, id_number, cashier_id) VALUES (?, ?, ?)");
-    $stmt->execute([$name, $id_number, $cashier_id]);
-
+    // New customer — signal client to open verification site and show manual buttons
     echo json_encode(['exists' => false]);
 
 } catch (PDOException $e) {
