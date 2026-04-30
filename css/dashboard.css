@@ -175,7 +175,24 @@
 .top-product-item .product-price { font-weight: 700; color: #16a34a; font-size: .88rem; }
 
 /* ─── Alert Widgets ─── */
-.alert-card-warn   .dash-card-header h6 { color: #d97706; }
+.alert-card-warn {
+  border-left: 4px solid #f59e0b !important;
+  background: #fff !important;
+}
+.alert-card-warn .dash-card-header {
+  background: #fff;
+  border-bottom: 1px solid #fef3c7;
+}
+.alert-card-warn .dash-card-header h6 { color: #d97706; }
+
+.alert-card-danger {
+  border-left: 4px solid #ef4444 !important;
+  background: #fff !important;
+}
+.alert-card-danger .dash-card-header {
+  background: #fff;
+  border-bottom: 1px solid #fee2e2;
+}
 .alert-card-danger .dash-card-header h6 { color: #dc2626; }
 
 .badge-warn  { background: #fef3c7; color: #92400e; padding: 3px 10px; border-radius: 50px; font-size: .72rem; font-weight: 700; }
