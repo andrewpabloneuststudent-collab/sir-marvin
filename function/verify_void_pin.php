@@ -29,8 +29,8 @@ if (!$pin) {
     exit;
 }
 
-if (!preg_match('/^\d{8}$/', $pin)) {
-    echo json_encode(['error' => 'Void PIN must be 8 digits']);
+if (!preg_match('/^\d{7}$/', $pin)) {
+    echo json_encode(['error' => 'Void PIN must be 7 digits']);
     exit;
 }
 
