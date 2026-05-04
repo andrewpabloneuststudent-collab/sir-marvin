@@ -33,6 +33,8 @@
                         <option value="Staff" <?= $u['position']=='Staff'?'selected':'' ?>>Staff</option>
                     </select>
 
+                    <input name="void_password" class="form-control mb-2" value="<?= $u['void_password'] ?>">
+                    <input name="password" class="form-control mb-2" placeholder="Enter new password">
                 </div>
 
                 <div class="modal-footer">

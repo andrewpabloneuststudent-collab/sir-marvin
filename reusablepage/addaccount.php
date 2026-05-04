@@ -35,6 +35,8 @@
                         <option selected>Staff</option>
                     </select>
 
+                    <input name="void_password" class="form-control mb-2" placeholder="Enter void password">
+                    <input name="password" class="form-control mb-2" placeholder="Enter password">
                 </div>
 
                 <div class="modal-footer">

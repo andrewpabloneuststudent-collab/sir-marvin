@@ -41,7 +41,8 @@
                     <div class="col-md-4 mt-2"><strong>Country:</strong> <?= htmlspecialchars($u['country']) ?></div>
                 </div>
 
-                <h6 class="mb-3">Void PIN</h6>
+                <hr>
+                <h6 class="mb-3">Password</h6>
                 <div class="row">
                     <div class="col-md-4"><strong>Void PIN:</strong> <?= htmlspecialchars($u['void_password']) ?></div>
                 </div>
