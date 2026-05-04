@@ -271,6 +271,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
             <button onclick="weposCancelVoidAuth()"><i class="fas fa-times"></i></button>
         </div>
         <div class="wepos-modal-body">
+            <div id="voidItemPreview" style="background:#f8f9fa; border:1px solid #dcdcde; padding:10px 14px; border-radius:4px; font-size:13px; margin-bottom:14px;"></div>
             <p class="text-muted" style="font-size:0.9rem; margin-bottom:1rem;">
                 Please enter the 7-digit Manager Void PIN to remove this item from the cart.
             </p>
@@ -404,4 +405,4 @@ $isManager = in_array($userRole, ['owner', 'admin']);
     const WEPOS_ROLE = '<?= $userRole ?>';
     const WEPOS_IS_MANAGER = <?= $isManager ? 'true' : 'false' ?>;
 </script>
-<script src="../js/pos_wepos.js"></script>
+<script src="../js/pos_wepos.js?v=1.3"></script>
