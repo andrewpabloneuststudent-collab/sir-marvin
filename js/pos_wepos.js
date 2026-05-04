@@ -157,6 +157,11 @@ function weposRemoveItem(id) {
         `<strong>${item.name}</strong> &times; ${item.qty} &mdash; &#8369;${(item.price * item.qty).toFixed(2)}`;
     document.getElementById('voidAuthPin').value = '';
     document.getElementById('voidAuthError').style.display = 'none';
+    const btn = document.getElementById('voidAuthBtn');
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-trash"></i> Confirm Remove';
+    }
     document.getElementById('voidAuthModal').style.display = 'flex';
     setTimeout(() => document.getElementById('voidAuthPin')?.focus(), 100);
 }
@@ -640,12 +645,12 @@ function weposShowReceipt(data) {
     let itemsHtml = '';
     data.items.forEach(item => {
         const c = weposCalcItem(item, data.dRate, data.isVatExempt);
-        itemsHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-            <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:8px;">
-                ${item.name}<br>
-                <span style="font-size:11px; color:#94a3b8;">${item.qty} x &#8369;${item.price.toFixed(2)}</span>
+        itemsHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items: flex-start;">
+            <div style="flex:1; margin-right:8px;">
+                <div style="font-weight:500; line-height:1.2;">${item.name}</div>
+                <div style="font-size:11px; color:#64748b;">${item.qty} x &#8369;${item.price.toFixed(2)}</div>
             </div>
-            <div style="font-weight:600;">&#8369;${c.final.toFixed(2)}</div>
+            <div style="font-weight:600; white-space:nowrap;">&#8369;${c.final.toFixed(2)}</div>
         </div>`;
     });
     document.getElementById('receiptItems').innerHTML = itemsHtml;
@@ -860,8 +865,8 @@ async function weposSubmitVoidAuth() {
 
     errEl.style.display = 'none';
 
-    if (!/^\d{4,8}$/.test(pin)) {
-        errEl.textContent = 'Please enter a valid 4-8 digit Void PIN.';
+    if (!/^\d{7}$/.test(pin)) {
+        errEl.textContent = 'Please enter a valid 7-digit Void PIN.';
         errEl.style.display = 'block';
         return;
     }
@@ -880,8 +885,6 @@ async function weposSubmitVoidAuth() {
         if (!result.success) {
             errEl.textContent = result.error || 'Invalid Void PIN.';
             errEl.style.display = 'block';
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-trash"></i> Confirm Remove';
             return;
         }
 
@@ -896,6 +899,8 @@ async function weposSubmitVoidAuth() {
     } catch (e) {
         errEl.textContent = 'Network error. Please try again.';
         errEl.style.display = 'block';
+    } finally {
+        // Always reset button so it doesn't get stuck
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-trash"></i> Confirm Remove';
     }

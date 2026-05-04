@@ -16,7 +16,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
 ?>
 
 <!-- wePOS Inspired CSS -->
-<link rel="stylesheet" href="../css/pos_wepos.css">
+<link rel="stylesheet" href="../css/pos_wepos.css?v=1.3">
 
 <div class="wepos-wrapper" id="weposApp">
     
@@ -261,38 +261,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
 
 
 
-<!-- ═══════════════ VOID (CART REMOVE) AUTHORIZATION MODAL ═══════════════ -->
-<div class="wepos-modal-overlay" id="voidAuthModal" style="display:none;" onclick="event.stopPropagation()">
-    <div class="wepos-modal" onclick="event.stopPropagation()" style="max-width:380px;">
-        <div class="wepos-modal-head" style="background: #fdf0f0;">
-            <h5 style="color: #922b21;"><i class="fas fa-trash-alt"></i> Remove Item from Cart</h5>
-            <button onclick="weposCancelVoidAuth()"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="wepos-modal-body">
-            <div id="voidItemPreview" style="background:#f8f9fa; border:1px solid #dcdcde; padding:10px 14px; border-radius:4px; font-size:13px; margin-bottom:14px;"></div>
-            <p class="text-muted" style="font-size:0.88rem; margin-bottom:1rem;">
-                Enter the <strong>8-digit Void PIN</strong> of an Owner or Admin to authorize this removal.
-            </p>
-            <div style="margin-bottom:0.75rem;">
-                <label style="font-size:0.85rem; font-weight:600; margin-bottom:0.25rem; display:block;">Void PIN</label>
-                <input type="password" id="voidAuthPin"
-                    placeholder="••••••••"
-                    maxlength="8"
-                    inputmode="numeric"
-                    autocomplete="off"
-                    style="width:100%; border-radius:4px; border:1px solid #8c8f94; padding:0.6rem; font-size:1.2rem; letter-spacing:4px; text-align:center;">
-            </div>
-            <div id="voidAuthError" class="text-danger" style="font-size:0.85rem; display:none;"></div>
-        </div>
-        <div class="wepos-modal-foot">
-            <button class="wepos-btn wepos-btn-outline" onclick="weposCancelVoidAuth()">Cancel</button>
-            <button class="wepos-btn" id="voidAuthBtn" onclick="weposSubmitVoidAuth()"
-                style="background:#c0392b; color:#fff; border:none;">
-                <i class="fas fa-trash"></i> Confirm Remove
-            </button>
-        </div>
-    </div>
-</div>
+
 
 <!-- ═══════════════ VOID AUTH MODAL ═══════════════ -->
 <div class="wepos-modal-overlay" id="voidAuthModal" style="display:none;" onclick="event.stopPropagation()">
@@ -302,11 +271,12 @@ $isManager = in_array($userRole, ['owner', 'admin']);
             <button onclick="weposCancelVoidAuth()"><i class="fas fa-times"></i></button>
         </div>
         <div class="wepos-modal-body">
+            <div id="voidItemPreview" style="background:#f8f9fa; border:1px solid #dcdcde; padding:10px 14px; border-radius:4px; font-size:13px; margin-bottom:14px;"></div>
             <p class="text-muted" style="font-size:0.9rem; margin-bottom:1rem;">
-                Please enter the Manager Void PIN to remove this item from the cart.
+                Please enter the 7-digit Manager Void PIN to remove this item from the cart.
             </p>
             <div style="margin-bottom:0.75rem;">
-                <input type="password" id="voidAuthPin" placeholder="Void PIN" style="width:100%; border-radius:4px; border:1px solid #8c8f94; padding:0.5rem; font-size:1.2rem; text-align:center; letter-spacing:4px;" autocomplete="off" maxlength="8">
+                <input type="password" id="voidAuthPin" placeholder="7-Digit Void PIN" style="width:100%; border-radius:4px; border:1px solid #8c8f94; padding:0.5rem; font-size:1.2rem; text-align:center; letter-spacing:4px;" autocomplete="off" maxlength="7">
             </div>
             <div id="voidAuthError" class="text-danger" style="font-size:0.85rem; display:none; margin-bottom:0.5rem; text-align:center;"></div>
         </div>
@@ -435,4 +405,4 @@ $isManager = in_array($userRole, ['owner', 'admin']);
     const WEPOS_ROLE = '<?= $userRole ?>';
     const WEPOS_IS_MANAGER = <?= $isManager ? 'true' : 'false' ?>;
 </script>
-<script src="../js/pos_wepos.js"></script>
+<script src="../js/pos_wepos.js?v=1.4"></script>
