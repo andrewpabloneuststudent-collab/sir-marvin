@@ -182,36 +182,35 @@ class UserManagement
         // =========================
         if (!empty($data['password'])) {
 
-            // ✅ HASH the new password
-            $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
+    $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
 
-            $stmt = $this->con->prepare("
-                UPDATE users 
-                SET username = ?, password = ?, void_password = ?
-                WHERE id = ?
-            ");
+    $stmt = $this->con->prepare("
+        UPDATE users 
+        SET username = ?, password = ?, void_password = ?
+        WHERE id = ?
+    ");
 
-            $stmt->execute([
-                $d['username'],
-                $hashedPassword,          // hashed password
-                $data['void_password'],   // plain (as you requested)
-                $userId
-            ]);
+    $stmt->execute([
+        $d['username'],
+        $hashedPassword,
+        $data['void_password'], // always included
+        $userId
+    ]);
 
-        } else {
+} else {
 
-            // No password update
-            $stmt = $this->con->prepare("
-                UPDATE users 
-                SET username = ?
-                WHERE id = ?
-            ");
+    $stmt = $this->con->prepare("
+        UPDATE users 
+        SET username = ?, void_password = ?
+        WHERE id = ?
+    ");
 
-            $stmt->execute([
-                $d['username'],
-                $userId
-            ]);
-        }
+    $stmt->execute([
+        $d['username'],
+        $data['void_password'], // ✅ FIXED
+        $userId
+    ]);
+}
 
         // =========================
         // UPDATE USERS INFO TABLE

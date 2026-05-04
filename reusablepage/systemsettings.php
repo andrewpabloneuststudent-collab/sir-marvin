@@ -128,7 +128,7 @@ $currentUser = $usersmanagement->getUserById($userId);
                         <div class="col-md-6">
                             <label class="form-label">Void Password</label>
                             <input type="number" class="form-control" name="void_password"
-                                placeholder="Enter new void password"
+                                placeholder="Enter new void password" minlength="8"
                                 value="<?= htmlspecialchars($currentUser['void_password'] ?? '') ?>">
                         </div>
 
