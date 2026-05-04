@@ -645,12 +645,12 @@ function weposShowReceipt(data) {
     let itemsHtml = '';
     data.items.forEach(item => {
         const c = weposCalcItem(item, data.dRate, data.isVatExempt);
-        itemsHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-            <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:8px;">
-                ${item.name}<br>
-                <span style="font-size:11px; color:#94a3b8;">${item.qty} x &#8369;${item.price.toFixed(2)}</span>
+        itemsHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items: flex-start;">
+            <div style="flex:1; margin-right:8px;">
+                <div style="font-weight:500; line-height:1.2;">${item.name}</div>
+                <div style="font-size:11px; color:#64748b;">${item.qty} x &#8369;${item.price.toFixed(2)}</div>
             </div>
-            <div style="font-weight:600;">&#8369;${c.final.toFixed(2)}</div>
+            <div style="font-weight:600; white-space:nowrap;">&#8369;${c.final.toFixed(2)}</div>
         </div>`;
     });
     document.getElementById('receiptItems').innerHTML = itemsHtml;
