@@ -885,8 +885,6 @@ async function weposSubmitVoidAuth() {
         if (!result.success) {
             errEl.textContent = result.error || 'Invalid Void PIN.';
             errEl.style.display = 'block';
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-trash"></i> Confirm Remove';
             return;
         }
 
@@ -901,6 +899,8 @@ async function weposSubmitVoidAuth() {
     } catch (e) {
         errEl.textContent = 'Network error. Please try again.';
         errEl.style.display = 'block';
+    } finally {
+        // Always reset button so it doesn't get stuck
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-trash"></i> Confirm Remove';
     }
