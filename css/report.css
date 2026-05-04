@@ -1,0 +1,26 @@
+body {
+    background: #f8f9fa;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.report-title {
+    font-weight: 700;
+}
+
+.expired {
+    color: red;
+    font-weight: bold;
+}
+
+.summary-card {
+    text-align: center;
+    padding: 20px;
+}
+
+.summary-value {
+    font-size: 22px;
+    font-weight: bold;
+}
