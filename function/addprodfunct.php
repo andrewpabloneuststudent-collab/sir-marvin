@@ -59,64 +59,80 @@ class ProductManagement
     }
 
     // 🔥 ADD PRODUCT (WITH TRANSACTION)
-    public function addProduct()
-    {
-        if (isset($_POST['addProduct'])) {
-            $this->getPost();
-            try {
-                // START TRANSACTION
-                $this->con->beginTransaction();
+   public function addProduct()
+{
+    if (isset($_POST['addProduct'])) {
+        $this->getPost();
 
-                $imagePath = $this->handleImageUpload();
+        try {
+            $this->con->beginTransaction();
 
-                // ➕ INSERT PRODUCT
-                $stmt = $this->con->prepare("
+            // ✅ INSERT THIS BLOCK HERE
+            if (empty($this->barcode)) {
+                do {
+                    $this->barcode = time() . rand(100, 999);
+
+                    $check = $this->con->prepare("SELECT id FROM products WHERE barcode = ?");
+                    $check->execute([$this->barcode]);
+
+                } while ($check->fetch());
+            } else {
+                $check = $this->con->prepare("SELECT id FROM products WHERE barcode = ?");
+                $check->execute([$this->barcode]);
+
+                if ($check->fetch()) {
+                    $this->response = "Barcode already exists!";
+                    return false;
+                }
+            }
+
+            $imagePath = $this->handleImageUpload();
+
+            // ➕ INSERT PRODUCT
+            $stmt = $this->con->prepare("
                 INSERT INTO products 
                 (product_name, barcode, category_id, classification_id, unit, net_price, total_price, imageproduct)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ");
 
-                $stmt->execute([
-                    $this->product_name,
-                    $this->barcode,
-                    $this->category_id,
-                    $this->classification_id,
-                    $this->unit,
-                    $this->net_price,
-                    $this->total_price,
-                    $imagePath
-                ]);
+            $stmt->execute([
+                $this->product_name,
+                $this->barcode,
+                $this->category_id,
+                $this->classification_id,
+                $this->unit,
+                $this->net_price,
+                $this->total_price,
+                $imagePath
+            ]);
 
-                $productId = $this->con->lastInsertId();
+            $productId = $this->con->lastInsertId();
 
-                // ➕ INSERT INVENTORY
-                $stmt = $this->con->prepare("
-                    INSERT INTO inventory (product_id, quantity, expiry_date)
-                    VALUES (?, ?, ?)
-                ");
+            // ➕ INVENTORY
+            $stmt = $this->con->prepare("
+                INSERT INTO inventory (product_id, quantity, expiry_date)
+                VALUES (?, ?, ?)
+            ");
 
-                $stmt->execute([
-                    $productId,
-                    $this->quantity,
-                    $this->expiry_date
-                ]);
+            $stmt->execute([
+                $productId,
+                $this->quantity,
+                $this->expiry_date
+            ]);
 
-                // ✅ COMMIT
-                $this->con->commit();
+            $this->con->commit();
 
-                $this->response = "Success";
-                return true;
+            $this->response = "Success";
+            return true;
 
-            } catch (\Exception $e) {
-                // ❌ ROLLBACK
-                $this->con->rollBack();
-                $this->response = "Transaction failed: " . $e->getMessage();
-                return false;
-            }
+        } catch (\Exception $e) {
+            $this->con->rollBack();
+            $this->response = "Transaction failed: " . $e->getMessage();
+            return false;
         }
-        return false;
     }
-
+    return false;
+}
     // 🔥 GET ALL PRODUCTS (IMPROVED - GROUPED INVENTORY)
     public function getAllProducts()
     {

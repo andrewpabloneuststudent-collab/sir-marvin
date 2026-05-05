@@ -12,7 +12,7 @@
                 <!-- BASIC INFO -->
                 <h6 class="mb-3">Basic Information</h6>
                 <div class="row">
-                    <div class="col-md-4"><strong>ID:</strong> <?= $u['id'] ?></div>
+                    <div class="col-md-4"><strong>Username:</strong> <?= $u['username'] ?></div>
                     <div class="col-md-4"><strong>First Name:</strong> <?= htmlspecialchars($u['firstname']) ?></div>
                     <div class="col-md-4"><strong>Middle Name:</strong> <?= htmlspecialchars($u['middlename']) ?></div>
                     <div class="col-md-4 mt-2"><strong>Last Name:</strong> <?= htmlspecialchars($u['lastname']) ?></div>

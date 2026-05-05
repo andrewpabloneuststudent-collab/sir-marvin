@@ -33,7 +33,10 @@ $classifications = $product->getClassifications();
                     <!-- BARCODE -->
                     <div class="mb-2">
                         <label>Barcode</label>
-                        <input type="text" name="barcode" class="form-control">
+                        <div class="input-group">
+                            <input type="text" name="barcode" id="barcode" class="form-control">
+                            <button type="button" class="btn btn-secondary" onclick="generateBarcode()">Auto</button>
+                        </div>
                     </div>
 
                     <!-- CATEGORY -->
@@ -73,9 +76,9 @@ $classifications = $product->getClassifications();
                         <label>Net Price</label>
                         <input type="number" step="0.01" name="net_price" class="form-control" required>
                     </div>
-                    
+
                     <!-- SRP PRICE -->
-                     <div class="mb-2">
+                    <div class="mb-2">
                         <label>Sale Price</label>
                         <input type="number" step="0.01" name="total_price" class="form-control" required>
                     </div>
@@ -110,3 +113,4 @@ $classifications = $product->getClassifications();
         </div>
     </div>
 </div>
+<script src="../js/auto_generatebarcode.js"></script>
