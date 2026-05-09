@@ -121,21 +121,21 @@ $currentUser = $usersmanagement->getUserById($userId);
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Contact Number</label>
-                            <input type="text" class="form-control" name="contactnumber"
-                                value="<?= htmlspecialchars($currentUser['contactnumber'] ?? '') ?>" placeholder="Contact Number">
+                            <input type="text" class="form-control" minlength="11" maxlength="11" name="contactnumber"
+                                value="<?= htmlspecialchars($currentUser['contactnumber'] ?? '') ?>" placeholder="Contact Number ex 09XXXXXXXXX">
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label">Void Password</label>
-                            <input type="number" class="form-control" name="void_password"
-                                placeholder="Enter new void password" maxlength="7"
+                            <input type="number" class="form-control"  minlength="7" maxlength="7" name="void_password"
+                                placeholder="Enter 7 number new void password" 
                                 value="<?= htmlspecialchars($currentUser['void_password'] ?? '') ?>">
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label">Password</label>
-                            <input type="text" class="form-control" maxlength="16" name="password"
-                                placeholder="Enter new password">
+                            <input type="text" class="form-control" minlength="8" maxlength="16" name="password"
+                                placeholder="Enter 8 alpanumeric password ex Qwerty123!">
                         </div>
 
                     </div>
