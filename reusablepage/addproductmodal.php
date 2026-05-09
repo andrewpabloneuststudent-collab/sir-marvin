@@ -68,7 +68,7 @@ $classifications = $product->getClassifications();
                     <!-- UNIT -->
                     <div class="mb-2">
                         <label>Unit</label>
-                        <input type="text" name="unit" class="form-control">
+                        <input type="text" name="unit" class="form-control" placeholder="ex 1pc">
                     </div>
 
                     <!-- PRICE -->

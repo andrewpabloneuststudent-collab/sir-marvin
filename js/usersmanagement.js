@@ -16,6 +16,9 @@ $(function () {
             initDataTable(this);
         }
     });
+    
+    // Focus search input on page load
+    focusSearchInput();
 
 });
 
@@ -23,7 +26,13 @@ function initDataTable(table) {
     return $(table).DataTable({
         responsive: true,
         autoWidth: false,
-        dom: 'Bfrtip',
+        dom: 'fBrtip',
         buttons: ['copy', 'excel', 'pdf', 'print']
     });
+}
+
+function focusSearchInput() {
+    setTimeout(function() {
+        $('input[type="search"]').first().focus();
+    }, 200);
 }

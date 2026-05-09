@@ -118,8 +118,8 @@ $cashiers = $data['cashiers'];
                                 <tr>
                                     <td><?= htmlspecialchars($row['product_name']) ?></td>
                                     <td><?= $row['quantity'] ?></td>
-                                    <td class="<?= (strtotime($row['expiry_date']) < time()) ? 'expired' : '' ?>">
-                                        <?= $row['expiry_date'] ?>
+                                    <td style="<?= ($row['expiry_date'] && strtotime($row['expiry_date']) < time()) ? 'color: red; font-weight: bold;' : '' ?>">
+                                        <?= $row['expiry_date'] ?: 'N/A' ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

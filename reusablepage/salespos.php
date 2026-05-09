@@ -405,4 +405,4 @@ $isManager = in_array($userRole, ['owner', 'admin']);
     const WEPOS_ROLE = '<?= $userRole ?>';
     const WEPOS_IS_MANAGER = <?= $isManager ? 'true' : 'false' ?>;
 </script>
-<script src="../js/pos_wepos.js?v=1.4"></script>
+<script src="../js/pos_wepos.js?v=1.4"></script>

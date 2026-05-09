@@ -21,7 +21,7 @@
                     <input type="number" name="age" class="form-control mb-2" placeholder="Age">
 
                     <input type="email" name="email" class="form-control mb-2" placeholder="Email">
-                    <input name="contactnumber" class="form-control mb-2" placeholder="Contact Number">
+                    <input name="contactnumber" class="form-control mb-2" placeholder="Contact Number ex 09xxxxxxxxx" minlength="11" maxlength="11">
 
                     <input name="street" class="form-control mb-2" placeholder="Street">
                     <input name="barangay" class="form-control mb-2" placeholder="Barangay">
@@ -35,8 +35,8 @@
                         <option selected>Staff</option>
                     </select>
 
-                    <input name="void_password" class="form-control mb-2" maxlength="7" placeholder="Enter void password">
-                    <input name="password" class="form-control mb-2" maxlength="16" placeholder="Enter password">
+                    <input name="void_password" class="form-control mb-2" minlength="7" maxlength="7" placeholder="Enter 7 number void password">
+                    <input name="password" class="form-control mb-2" maxlength="16" placeholder="Enter 8 to 16 alpanumeric password ex Qwerty123!" minlength="8" maxlength="16" required>
                 </div>
 
                 <div class="modal-footer">
