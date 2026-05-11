@@ -77,7 +77,7 @@ $cashiers = $data['cashiers'];
             <!-- TOP PRODUCTS -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-dark text-white">
-                    🔥 Top Selling Products
+                    Top Selling Products
                 </div>
                 <div class="card-body">
                     <table class="table table-striped">
@@ -102,7 +102,7 @@ $cashiers = $data['cashiers'];
             <!-- INVENTORY -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-dark text-dark">
-                    📦 Inventory (Expiry Monitoring)
+                    Inventory (Expiry Monitoring)
                 </div>
                 <div class="card-body">
                     <table class="table table-bordered">
@@ -131,7 +131,7 @@ $cashiers = $data['cashiers'];
             <!-- DISCOUNTS -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-dark text-white">
-                    🎯 Discount Usage
+                    Discount Usage
                 </div>
                 <div class="card-body">
                     <table class="table table-hover">
@@ -156,7 +156,7 @@ $cashiers = $data['cashiers'];
             <!-- CASHIERS -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-dark text-white">
-                    👨‍💼 Cashier Performance
+                    Cashier Performance
                 </div>
                 <div class="card-body">
                     <table class="table table-striped">
