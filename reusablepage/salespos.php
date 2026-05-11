@@ -62,7 +62,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
                     <?php 
                         $stock = (int)($row['stock'] ?? 0);
                         $isOut = $stock <= 0;
-                        $image = !empty($row['imageproduct']) ? "../uploads/products/" . $row['imageproduct'] : "";
+                        $image = !empty($row['imageproduct']) ? "../img/" . $row['imageproduct'] : "";
                     ?>
                     <div class="wepos-product-card <?= ($row['is_expired'] == 1) ? 'expired-product' : ($isOut ? 'out-of-stock' : '') ?>"
                          data-id="<?= $row['id'] ?>"

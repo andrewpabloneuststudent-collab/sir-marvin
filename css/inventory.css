@@ -126,11 +126,14 @@
     text-decoration: none;
     white-space: nowrap;
 }
-.btn-action-edit:hover {
+.btn-action-edit:hover,
+.modal .btn-action-edit:hover,
+.modal .btn-action-edit:focus,
+.modal .btn-action-edit:active {
     background: #2d3f57;
-    transform: translateY(-1px);
     box-shadow: 0 3px 8px rgba(26,37,53,.25);
     color: #fff;
+    transform: none !important;
 }
 .btn-action-delete {
     display: inline-flex;
@@ -148,11 +151,14 @@
     text-decoration: none;
     white-space: nowrap;
 }
-.btn-action-delete:hover {
+.btn-action-delete:hover,
+.modal .btn-action-delete:hover,
+.modal .btn-action-delete:focus,
+.modal .btn-action-delete:active {
     background: linear-gradient(135deg, #b91c1c, #dc2626);
-    transform: translateY(-1px);
     box-shadow: 0 3px 8px rgba(220,38,38,.3);
     color: #fff;
+    transform: none !important;
 }
 .action-btns {
     display: flex;

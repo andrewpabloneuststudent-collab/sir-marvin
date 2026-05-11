@@ -25,7 +25,7 @@ if (isset($_POST['deleteUser'])) {
 
 // FETCH
 $users = $usersmanagement->getAllUsers();
-?>
+    ?>
 
 <!-- ✅ ALERT + REDIRECT -->
 <?php if ($result): ?>

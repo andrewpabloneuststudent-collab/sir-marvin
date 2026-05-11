@@ -372,7 +372,6 @@
     .dt-button:hover {
         background: var(--pharm-red) !important;
         box-shadow: 0 3px 10px rgba(192, 57, 43, .35) !important;
-        transform: translateY(-1px) !important;
     }
 
     .dt-buttons {
@@ -385,6 +384,14 @@
     }
 
     /* ── Modals ── */
+    .modal {
+        z-index: 20050 !important;
+    }
+
+    .modal-backdrop {
+        z-index: 20040 !important;
+    }
+
     .modal-content {
         border-radius: 16px !important;
         border: none !important;
@@ -408,6 +415,20 @@
     .modal-footer {
         border-top: 1px solid #f1f5f9 !important;
         padding: 14px 22px !important;
+    }
+
+    .modal .btn:hover,
+    .modal .btn:focus,
+    .modal .btn:focus-visible,
+    .modal .btn:active,
+    .modal .btn-action-edit:hover,
+    .modal .btn-action-delete:hover,
+    .modal .dt-button:hover,
+    .modal .btn-action-edit:focus,
+    .modal .btn-action-delete:focus,
+    .modal .btn-action-edit:active,
+    .modal .btn-action-delete:active {
+        transform: none !important;
     }
 
     /* ── Dropdown ── */
@@ -449,7 +470,6 @@
 
     .btn-action-edit:hover {
         background: #2d3f57;
-        transform: translateY(-1px);
         box-shadow: 0 3px 8px rgba(26, 37, 53, .25);
         color: #fff;
     }
@@ -474,7 +494,6 @@
 
     .btn-action-delete:hover {
         background: linear-gradient(135deg, #b91c1c, #dc2626);
-        transform: translateY(-1px);
         box-shadow: 0 3px 8px rgba(220, 38, 38, .3);
         color: #fff;
     }

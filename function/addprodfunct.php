@@ -3,6 +3,7 @@
 namespace Classes;
 
 require_once "../conn/database.php";
+require_once __DIR__ . "/file_upload.php";
 
 class ProductManagement
 {
@@ -43,18 +44,15 @@ class ProductManagement
 
     private function handleImageUpload()
     {
-        if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] == 0) {
-            $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-            $filename = $_FILES['product_image']['name'];
-            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-            if (in_array($ext, $allowed)) {
-                $newFileName = uniqid() . '.' . $ext;
-                $dest = __DIR__ . '/../uploads/products/' . $newFileName;
-                if (move_uploaded_file($_FILES['product_image']['tmp_name'], $dest)) {
-                    return $newFileName;
-                }
+        if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = __DIR__ . '/../img/';
+            $uploader = new fileupload($_FILES['product_image'], $uploadDir);
+
+            if ($uploader->upload()) {
+                return $uploader->filename;
             }
         }
+
         return '';
     }
 
