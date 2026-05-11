@@ -13,7 +13,7 @@ if (strtolower($_SESSION['position']) !== 'staff') {
     exit;
 }
 
-require_once __DIR__ . "/../conn/Database.php";
+require_once __DIR__ . "/../conn/database.php";
 require_once __DIR__ . "/../conn/connection_links.php";
 require_once __DIR__ . "/../function/userregistration.php";
 

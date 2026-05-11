@@ -2,7 +2,7 @@
 
 namespace Classes;
 
-require_once "../conn/Database.php";
+require_once "../conn/database.php";
 
 class UserManagement
 {
@@ -32,10 +32,9 @@ class UserManagement
             'province'      => $data['province'] ?? '',
             'country'       => $data['country'] ?? '',
 
-            'email'         => $data['email'] ?? '',
+            'email' => $data['email'] ?? '',
             'contactnumber' => $data['contactnumber'] ?? '',
-
-            'void_pin'      => $data['void_pin'] ?? null,
+            'void_pin' => $data['void_pin'] ?? null,
         ];
     }
 
@@ -55,8 +54,8 @@ class UserManagement
             return ['success' => false, 'message' => 'Username already exists'];
         }
 
-        // ✅ Default: no void password
-        $voidRaw = null;
+        // ✅ Get void_password from form (manual input)
+        $voidRaw = !empty($data['void_password']) ? $data['void_password'] : null;
 
         // ✅ ONLY generate if NOT staff — 8-digit PIN
         if (strtolower($d['position']) !== 'staff') {
@@ -69,9 +68,9 @@ class UserManagement
             VALUES (?, ?, ?, 0, ?)
         ")->execute([
             $d['username'],
-            password_hash($d['password'], PASSWORD_BCRYPT), // keep login password hashed
+            password_hash($d['password'], PASSWORD_BCRYPT), // hashed login password
             $d['position'],
-            $voidRaw // ✅ store plain PIN
+            $voidRaw // plain void password
         ]);
 
         $userId = $this->con->lastInsertId();
@@ -100,8 +99,7 @@ class UserManagement
 
         return [
             'success' => true,
-            'message' => 'User added successfully',
-            'void_pin' => $voidRaw // show in alert if needed
+            'message' => 'User added successfully'
         ];
 
     } catch (\Throwable $e) {
@@ -112,127 +110,90 @@ class UserManagement
 
     // 🔥 UPDATE USER (MERGED VERSION - no duplicate methods)
     public function updateUser(int $userId, array $data): array
-    {
-        if (!$userId) {
-            return ['success' => false, 'message' => 'Invalid user ID'];
-        }
-
-        $d = $this->input($data);
-
-        if (!$d['firstname'] || !$d['lastname'] || !$d['email']) {
-            return ['success' => false, 'message' => 'Required fields missing'];
-        }
-
-        try {
-            $this->con->beginTransaction();
-
-            // Update users
-            $this->con->prepare("
-                UPDATE users SET position = ? WHERE id = ?
-            ")->execute([$d['position'], $userId]);
-
-            // Update info
-            $this->con->prepare("
-                UPDATE users_info SET 
-                firstname=?, middlename=?, lastname=?, age=?, email=?, contactnumber=?, 
-                street=?, barangay=?, city=?, province=?, country=?
-                WHERE user_id=?
-            ")->execute([
-                        $d['firstname'],
-                        $d['middlename'],
-                        $d['lastname'],
-                        $d['age'],
-                        $d['email'],
-                        $d['contactnumber'],
-                        $d['street'],
-                        $d['barangay'],
-                        $d['city'],
-                        $d['province'],
-                        $d['country'],
-                        $userId
-                    ]);
-
-            $this->con->commit();
-
-            return ['success' => true, 'message' => 'User updated successfully'];
-
-        } catch (\Throwable $e) {
-            $this->con->rollBack();
-            return ['success' => false, 'message' => $e->getMessage()];
-        }
-    }
-
- 
-public function updateUserSystem(int $userId, array $data): array
 {
     if (!$userId) {
         return ['success' => false, 'message' => 'Invalid user ID'];
     }
 
-    // sanitize other inputs
     $d = $this->input($data);
 
-    if (!$d['firstname'] || !$d['lastname'] || !$d['email']) {
+    // =========================
+    // VALIDATION
+    // =========================
+    if (
+        !$d['firstname'] ||
+        !$d['lastname'] ||
+        !$d['email'] ||
+        !$d['username']
+    ) {
         return ['success' => false, 'message' => 'Required fields missing'];
     }
-
-    // ✅ ALWAYS GET void_password FROM RAW DATA (NOT $d)
-    $voidPassword = isset($data['void_password']) && $data['void_password'] !== ''
-        ? trim($data['void_password'])
-        : null;
 
     try {
         $this->con->beginTransaction();
 
         // =========================
-        // UPDATE USERS TABLE
+        // CHECK DUPLICATE USERNAME
         // =========================
-        if (!empty($data['password'])) {
+        $stmt = $this->con->prepare("
+            SELECT id FROM users 
+            WHERE username = ? AND id != ?
+        ");
+        $stmt->execute([
+            trim($d['username']),
+            $userId
+        ]);
 
-            $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
-
-            $stmt = $this->con->prepare("
-                UPDATE users 
-                SET username = ?, password = ?, void_password = ?
-                WHERE id = ?
-            ");
-
-            $stmt->execute([
-                $d['username'],
-                $hashedPassword,
-                $voidPassword,
-                $userId
-            ]);
-
-        } else {
-
-            // ✅ FIX: include void_password even if no password update
-            $stmt = $this->con->prepare("
-                UPDATE users 
-                SET username = ?, void_password = ?
-                WHERE id = ?
-            ");
-
-            $stmt->execute([
-                $d['username'],
-                $voidPassword,
-                $userId
-            ]);
+        if ($stmt->fetch()) {
+            return ['success' => false, 'message' => 'Username already exists'];
         }
 
         // =========================
-        // UPDATE USERS INFO TABLE
+        // USERS TABLE UPDATE
         // =========================
-        $stmt = $this->con->prepare("
-            UPDATE users_info SET 
-            firstname=?, middlename=?, lastname=?, age=?, email=?, contactnumber=?, 
-            street=?, barangay=?, city=?, province=?, country=?
-            WHERE user_id=?
-        ");
+        $fields = ['position = ?', 'username = ?'];
+        $params = [
+            $d['position'],
+            trim($d['username'])
+        ];
 
-        $stmt->execute([
+        // ✅ HASHED password
+        if (!empty($data['password'])) {
+            $fields[] = 'password = ?';
+            $params[] = password_hash($data['password'], PASSWORD_DEFAULT);
+        }
+
+        // ✅ PLAIN void password (as requested)
+        if (!empty($data['void_password'])) {
+            $fields[] = 'void_password = ?';
+            $params[] = $data['void_password'];
+        }
+
+        $params[] = $userId;
+
+        $sql = "UPDATE users SET " . implode(', ', $fields) . " WHERE id = ?";
+        $this->con->prepare($sql)->execute($params);
+
+        // =========================
+        // USERS INFO UPDATE
+        // =========================
+        $this->con->prepare("
+            UPDATE users_info SET 
+                firstname=?, 
+                middlename=?, 
+                lastname=?, 
+                age=?, 
+                email=?, 
+                contactnumber=?, 
+                street=?, 
+                barangay=?, 
+                city=?, 
+                province=?, 
+                country=?
+            WHERE user_id=?
+        ")->execute([
             $d['firstname'],
-            $d['middlename'],
+            $d['middlename'] ?? null,
             $d['lastname'],
             $d['age'] ?? null,
             $d['email'],
@@ -254,6 +215,91 @@ public function updateUserSystem(int $userId, array $data): array
         return ['success' => false, 'message' => $e->getMessage()];
     }
 }
+    public function updateUserSystem(int $userId, array $data): array
+    {
+        if (!$userId) {
+            return ['success' => false, 'message' => 'Invalid user ID'];
+        }
+
+        $d = $this->input($data);
+
+        if (!$d['firstname'] || !$d['lastname'] || !$d['email']) {
+            return ['success' => false, 'message' => 'Required fields missing'];
+        }
+
+        try {
+            $this->con->beginTransaction();
+
+            // =========================
+            // UPDATE USERS TABLE
+            // =========================
+            if (!empty($data['password'])) {
+
+                $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
+
+                $stmt = $this->con->prepare("
+        UPDATE users 
+        SET username = ?, password = ?, void_password = ?
+        WHERE id = ?
+    ");
+
+                $stmt->execute([
+                    $d['username'],
+                    $hashedPassword,
+                    $data['void_password'], // always included
+                    $userId
+                ]);
+
+            } else {
+
+                $stmt = $this->con->prepare("
+        UPDATE users 
+        SET username = ?, void_password = ?
+        WHERE id = ?
+    ");
+
+                $stmt->execute([
+                    $d['username'],
+                    $data['void_password'], // ✅ FIXED
+                    $userId
+                ]);
+            }
+
+            // =========================
+            // UPDATE USERS INFO TABLE
+            // =========================
+            $stmt = $this->con->prepare("
+            UPDATE users_info SET 
+            firstname=?, middlename=?, lastname=?, age=?, email=?, contactnumber=?, 
+            street=?, barangay=?, city=?, province=?, country=?
+            WHERE user_id=?
+        ");
+
+            $stmt->execute([
+                $d['firstname'],
+                $d['middlename'],
+                $d['lastname'],
+                $d['age'] ?? null,
+                $d['email'],
+                $d['contactnumber'],
+                $d['street'] ?? null,
+                $d['barangay'] ?? null,
+                $d['city'] ?? null,
+                $d['province'] ?? null,
+                $d['country'] ?? null,
+                $userId
+            ]);
+
+            $this->con->commit();
+
+            return ['success' => true, 'message' => 'User updated successfully'];
+
+        } catch (\Throwable $e) {
+            $this->con->rollBack();
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
     // 🔥 DELETE USER
     public function deleteUser(int $userId): array
     {

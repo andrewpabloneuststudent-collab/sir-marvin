@@ -1,0 +1,258 @@
+/* ─── Dashboard Scoped Styles ─── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --red:     #c0392b;
+  --red-dk:  #a93226;
+  --red-lt:  #fff5f5;
+  --coral:   #e74c3c;
+  --rose:    #e91e63;
+  --amber:   #f59e0b;
+  --teal:    #0d9488;
+  --indigo:  #4f46e5;
+  --text:    #1a2535;
+  --muted:   #94a3b8;
+  --border:  #f1f5f9;
+  --card-bg: #fff;
+  --dash-bg: #f4f6f9;
+}
+
+.dash-wrapper {
+  background: var(--dash-bg);
+  min-height: 100%;
+  padding: 28px 28px 56px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ─── Header ─── */
+.dash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+.dash-header h4 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+  letter-spacing: -.5px;
+}
+.dash-header .date-badge {
+  background: linear-gradient(135deg, var(--red), var(--coral));
+  color: #fff;
+  font-size: .78rem;
+  font-weight: 700;
+  padding: 7px 18px;
+  border-radius: 50px;
+  letter-spacing: .5px;
+  box-shadow: 0 4px 14px rgba(192,57,43,.35);
+}
+
+/* ─── Stat Cards — Premium Gradient ─── */
+.stat-card {
+  border-radius: 18px;
+  padding: 24px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: none;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  transition: transform .2s ease, box-shadow .2s ease;
+  color: #fff;
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  right: -20px; top: -20px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.12);
+}
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px rgba(0,0,0,.15) !important;
+}
+
+/* Per-card gradient themes */
+.stat-card.card-red    { background: linear-gradient(135deg, #c0392b, #e74c3c); box-shadow: 0 4px 20px rgba(192,57,43,.35); }
+.stat-card.card-rose   { background: linear-gradient(135deg, #c2185b, #e91e63); box-shadow: 0 4px 20px rgba(194,24,91,.3); }
+.stat-card.card-teal   { background: linear-gradient(135deg, #0f766e, #14b8a6); box-shadow: 0 4px 20px rgba(15,118,110,.3); }
+.stat-card.card-indigo { background: linear-gradient(135deg, #4338ca, #6366f1); box-shadow: 0 4px 20px rgba(67,56,202,.3); }
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  color: #fff;
+  backdrop-filter: blur(8px);
+}
+/* Override old colored icon classes */
+.stat-icon.blue, .stat-icon.green,
+.stat-icon.cyan, .stat-icon.amber { background: rgba(255,255,255,.22); color: #fff; }
+
+.stat-label {
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .9px;
+  color: rgba(255,255,255,.75);
+  margin-bottom: 5px;
+}
+.stat-value {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: -.5px;
+}
+.stat-sub {
+  font-size: .72rem;
+  color: rgba(255,255,255,.65);
+  margin-top: 5px;
+}
+
+/* ─── Section Cards ─── */
+.dash-card {
+  background: var(--card-bg);
+  border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(0,0,0,.05);
+  border: 1px solid rgba(0,0,0,.04);
+  overflow: hidden;
+  height: 100%;
+}
+.dash-card-header {
+  padding: 18px 22px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.dash-card-header h6 {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+.dash-card-body {
+  padding: 18px 22px;
+}
+
+/* ─── Chart ─── */
+.chart-wrapper {
+  position: relative;
+  height: 300px;
+}
+
+/* ─── Table ─── */
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .84rem;
+}
+.dash-table th {
+  text-transform: uppercase;
+  font-size: .67rem;
+  letter-spacing: .7px;
+  color: var(--muted);
+  font-weight: 700;
+  padding: 0 0 12px;
+  border-bottom: 2px solid var(--border);
+}
+.dash-table td {
+  padding: 13px 0;
+  color: #374151;
+  border-bottom: 1px solid #f8fafc;
+  vertical-align: middle;
+}
+.dash-table tr:last-child td { border-bottom: none; }
+.dash-table tr:hover td     { background: #fafbfc; }
+
+.ref-id     { font-weight: 700; color: var(--text); font-size: .82rem; font-family: 'Courier New', monospace; }
+.amount-pos { color: var(--red); font-weight: 700; }
+.amount-neg { color: #ef4444; font-size: .82rem; }
+
+/* ─── Pills ─── */
+.pill {
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .3px;
+}
+.pill-gray  { background: #f1f5f9; color: #64748b; }
+.pill-green { background: #f0fdf4; color: #16a34a; }
+.pill-red   { background: var(--red-lt); color: var(--red); }
+
+/* ─── Top Products ─── */
+.top-product-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+.top-product-item:last-child { border-bottom: none; }
+.product-rank {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #c0392b, #e74c3c);
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 12px;
+  box-shadow: 0 2px 6px rgba(192,57,43,.3);
+}
+.top-product-item .product-name  { font-weight: 600; color: var(--text); font-size: .85rem; }
+.top-product-item .product-sold  { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+.top-product-item .product-price { font-weight: 700; color: var(--red); font-size: .88rem; white-space: nowrap; }
+
+/* ─── Alert Widgets ─── */
+.alert-card-warn   { border-left: 4px solid var(--text) !important; }
+.alert-card-warn  .dash-card-header h6  { color: var(--text); }
+.alert-card-danger { border-left: 4px solid var(--red)  !important; }
+.alert-card-danger .dash-card-header h6 { color: var(--red); }
+
+/* Stock count badge — neutral dark pill */
+.badge-warn  {
+  background: #1a2535;
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .3px;
+}
+/* Expiry / danger badge — red pill */
+.badge-danger {
+  background: linear-gradient(135deg, var(--red), var(--coral));
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .3px;
+  box-shadow: 0 2px 6px rgba(192,57,43,.3);
+}
+
+/* ─── Empty State ─── */
+.empty-state {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--muted);
+  font-size: .85rem;
+}
+.empty-state i { font-size: 2.2rem; display: block; margin-bottom: 10px; opacity: .3; }

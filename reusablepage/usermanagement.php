@@ -30,11 +30,22 @@ $users = $usersmanagement->getAllUsers();
 <!-- ✅ ALERT + REDIRECT -->
 <?php if ($result): ?>
     <script>
-        alert("<?= $result['message'] ?>");
-
-        <?php if ($result['success']): ?>
-            window.location.href = 'dashboard.php?tab=users';
-        <?php endif; ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            <?php if ($result['success']): ?>
+                if (typeof weposAlert === 'function') {
+                    weposAlert('<?= addslashes($result['message']) ?>', 'success');
+                } else {
+                    alert('<?= addslashes($result['message']) ?>');
+                }
+                setTimeout(() => { window.location.href = 'dashboard.php?tab=users'; }, 1500);
+            <?php else: ?>
+                if (typeof weposAlert === 'function') {
+                    weposAlert('<?= addslashes($result['message']) ?>', 'error');
+                } else {
+                    alert('<?= addslashes($result['message']) ?>');
+                }
+            <?php endif; ?>
+        });
     </script>
 <?php endif; ?>
 
@@ -94,29 +105,28 @@ $users = $usersmanagement->getAllUsers();
                                     </span>
                                 </td>
 
-                                <td class="col-action text-center ">
-
-                                    <!-- VIEW -->
-                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal"
-                                        data-bs-target="#view<?= $u['id'] ?>">
-                                        View
-                                    </button>
-
-                                    <!-- EDIT -->
-                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
-                                        data-bs-target="#edit<?= $u['id'] ?>">
-                                        Edit
-                                    </button>
-
-                                    <!-- DELETE -->
-                                    <form method="POST" class="d-inline">
-                                        <input type="hidden" name="id" value="<?= $u['id'] ?>">
-                                        <button type="submit" name="deleteUser" class="btn btn-danger btn-sm"
-                                            onclick="return confirm('Delete this user?')">
-                                            Delete
+                                <td class="col-action text-center">
+                                    <div class="action-btns justify-content-center">
+                                        <!-- VIEW -->
+                                        <button class="btn-action-edit" data-bs-toggle="modal"
+                                            data-bs-target="#view<?= $u['id'] ?>">
+                                            <i class="fas fa-eye"></i> View
                                         </button>
-                                    </form>
-
+                                        <!-- EDIT -->
+                                        <button class="btn-action-edit" data-bs-toggle="modal"
+                                            data-bs-target="#edit<?= $u['id'] ?>"
+                                            style="background:#2d3f57;">
+                                            <i class="fas fa-pen"></i> Edit
+                                        </button>
+                                        <!-- DELETE -->
+                                        <form method="POST" class="d-inline">
+                                            <input type="hidden" name="id" value="<?= $u['id'] ?>">
+                                            <button type="submit" name="deleteUser" class="btn-action-delete"
+                                                onclick="return confirm('Delete this user?')">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
 

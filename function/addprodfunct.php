@@ -2,7 +2,7 @@
 
 namespace Classes;
 
-require_once "../conn/Database.php";
+require_once "../conn/database.php";
 
 class ProductManagement
 {
@@ -41,62 +41,98 @@ class ProductManagement
         }
     }
 
-    // 🔥 ADD PRODUCT (WITH TRANSACTION)
-    public function addProduct()
+    private function handleImageUpload()
     {
-        if (isset($_POST['addProduct'])) {
-            $this->getPost();
-            try {
-                // START TRANSACTION
-                $this->con->beginTransaction();
-
-                // ➕ INSERT PRODUCT
-                $stmt = $this->con->prepare("
-                INSERT INTO products 
-                (product_name, barcode, category_id, classification_id, unit, net_price, total_price)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ");
-
-                $stmt->execute([
-                    $this->product_name,
-                    $this->barcode,
-                    $this->category_id,
-                    $this->classification_id,
-                    $this->unit,
-                    $this->net_price,
-                    $this->total_price
-                ]);
-
-                $productId = $this->con->lastInsertId();
-
-                // ➕ INSERT INVENTORY
-                $stmt = $this->con->prepare("
-                    INSERT INTO inventory (product_id, quantity, expiry_date)
-                    VALUES (?, ?, ?)
-                ");
-
-                $stmt->execute([
-                    $productId,
-                    $this->quantity,
-                    $this->expiry_date
-                ]);
-
-                // ✅ COMMIT
-                $this->con->commit();
-
-                $this->response = "Success";
-                return true;
-
-            } catch (\Exception $e) {
-                // ❌ ROLLBACK
-                $this->con->rollBack();
-                $this->response = "Transaction failed: " . $e->getMessage();
-                return false;
+        if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] == 0) {
+            $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            $filename = $_FILES['product_image']['name'];
+            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            if (in_array($ext, $allowed)) {
+                $newFileName = uniqid() . '.' . $ext;
+                $dest = __DIR__ . '/../uploads/products/' . $newFileName;
+                if (move_uploaded_file($_FILES['product_image']['tmp_name'], $dest)) {
+                    return $newFileName;
+                }
             }
         }
-        return false;
+        return '';
     }
 
+    // 🔥 ADD PRODUCT (WITH TRANSACTION)
+   public function addProduct()
+{
+    if (isset($_POST['addProduct'])) {
+        $this->getPost();
+
+        try {
+            $this->con->beginTransaction();
+
+            // ✅ INSERT THIS BLOCK HERE
+            if (empty($this->barcode)) {
+                do {
+                    $this->barcode = time() . rand(100, 999);
+
+                    $check = $this->con->prepare("SELECT id FROM products WHERE barcode = ?");
+                    $check->execute([$this->barcode]);
+
+                } while ($check->fetch());
+            } else {
+                $check = $this->con->prepare("SELECT id FROM products WHERE barcode = ?");
+                $check->execute([$this->barcode]);
+
+                if ($check->fetch()) {
+                    $this->response = "Barcode already exists!";
+                    return false;
+                }
+            }
+
+            $imagePath = $this->handleImageUpload();
+
+            // ➕ INSERT PRODUCT
+            $stmt = $this->con->prepare("
+                INSERT INTO products 
+                (product_name, barcode, category_id, classification_id, unit, net_price, total_price, imageproduct)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+
+            $stmt->execute([
+                $this->product_name,
+                $this->barcode,
+                $this->category_id,
+                $this->classification_id,
+                $this->unit,
+                $this->net_price,
+                $this->total_price,
+                $imagePath
+            ]);
+
+            $productId = $this->con->lastInsertId();
+
+            // ➕ INVENTORY
+            $stmt = $this->con->prepare("
+                INSERT INTO inventory (product_id, quantity, expiry_date)
+                VALUES (?, ?, ?)
+            ");
+
+            $stmt->execute([
+                $productId,
+                $this->quantity,
+                $this->expiry_date
+            ]);
+
+            $this->con->commit();
+
+            $this->response = "Success";
+            return true;
+
+        } catch (\Exception $e) {
+            $this->con->rollBack();
+            $this->response = "Transaction failed: " . $e->getMessage();
+            return false;
+        }
+    }
+    return false;
+}
     // 🔥 GET ALL PRODUCTS (IMPROVED - GROUPED INVENTORY)
     public function getAllProducts()
     {
@@ -109,6 +145,7 @@ class ProductManagement
                 pc.category_name,
                 p.barcode,
                 p.unit,
+                p.imageproduct,
                 pcl.classification_name,
                 COALESCE(SUM(i.quantity), 0) AS quantity,
                 MAX(i.expiry_date) AS expiry_date
@@ -185,24 +222,47 @@ class ProductManagement
                     }
                 }
 
-                // ✏️ UPDATE PRODUCT
-                $stmt = $this->con->prepare("
-                UPDATE products 
-                SET product_name = ?, barcode = ?, category_id = ?, 
-                classification_id = ?, unit = ?, net_price = ?, total_price = ?
-                WHERE id = ?
-            ");
+                $imagePath = $this->handleImageUpload();
 
-                $stmt->execute([
-                    $this->product_name,
-                    $this->barcode,
-                    $this->category_id,
-                    $this->classification_id,
-                    $this->unit,
-                    $this->net_price,
-                    $this->total_price,
-                    $this->id
-                ]);
+                // ✏️ UPDATE PRODUCT
+                if ($imagePath !== '') {
+                    $stmt = $this->con->prepare("
+                    UPDATE products 
+                    SET product_name = ?, barcode = ?, category_id = ?, 
+                    classification_id = ?, unit = ?, net_price = ?, total_price = ?, imageproduct = ?
+                    WHERE id = ?
+                ");
+
+                    $stmt->execute([
+                        $this->product_name,
+                        $this->barcode,
+                        $this->category_id,
+                        $this->classification_id,
+                        $this->unit,
+                        $this->net_price,
+                        $this->total_price,
+                        $imagePath,
+                        $this->id
+                    ]);
+                } else {
+                    $stmt = $this->con->prepare("
+                    UPDATE products 
+                    SET product_name = ?, barcode = ?, category_id = ?, 
+                    classification_id = ?, unit = ?, net_price = ?, total_price = ?
+                    WHERE id = ?
+                ");
+
+                    $stmt->execute([
+                        $this->product_name,
+                        $this->barcode,
+                        $this->category_id,
+                        $this->classification_id,
+                        $this->unit,
+                        $this->net_price,
+                        $this->total_price,
+                        $this->id
+                    ]);
+                }
 
                 // ✏️ UPDATE INVENTORY (simple version)
                 $stmt = $this->con->prepare("
@@ -300,15 +360,19 @@ class ProductManagement
         }
 
         $html = '<div id="lowStockAlert">';
-        $html .= '⚠ WARNING: Low stock detected!<br><br>';
+        $html .= '<div class="alert-header">';
+        $html .= '<h5><i class="fas fa-triangle-exclamation"></i> Low Stock</h5>';
+        $html .= '<button type="button" class="btn-close" onclick="this.closest(\'#lowStockAlert\').remove()"></button>';
+        $html .= '</div><div class="alert-items-container">';
 
         foreach ($items as $item) {
-            $html .= '• ' . htmlspecialchars($item['product_name']) .
-                ' (' . $item['quantity'] . ' left)<br>';
+            $html .= '<div class="alert-item">';
+            $html .= '<span class="text-truncate">' . htmlspecialchars($item['product_name']) . '</span>';
+            $html .= '<span class="alert-badge-stock">' . $item['quantity'] . ' left</span>';
+            $html .= '</div>';
         }
 
-        $html .= '<br><button onclick="closeAlert()">OK</button>';
-        $html .= '</div>';
+        $html .= '</div></div>';
 
         return $html;
     }
@@ -344,19 +408,26 @@ class ProductManagement
         }
 
         $html = '<div id="expiryAlert">';
-        $html .= '<h4>⚠ Expiration Warning</h4><br>';
+        $html .= '<div class="alert-header">';
+        $html .= '<h5><i class="fas fa-calendar-xmark"></i> Expiring Soon</h5>';
+        $html .= '<button type="button" class="btn-close" onclick="this.closest(\'#expiryAlert\').remove()"></button>';
+        $html .= '</div><div class="alert-items-container">';
 
         foreach ($items as $item) {
-
             if ($item['status'] === 'Expired') {
-                $html .= "<div class='expiry-expired'>• " . htmlspecialchars($item['name']) . " (Expired)</div>";
+                $html .= '<div class="alert-item">';
+                $html .= '<span class="text-truncate">' . htmlspecialchars($item['name']) . '</span>';
+                $html .= '<span class="alert-badge-expired">Expired</span>';
+                $html .= '</div>';
             } else {
-                $html .= "<div class='expiry-near'>• " . htmlspecialchars($item['name']) . " (Near Expiry)</div>";
+                $html .= '<div class="alert-item">';
+                $html .= '<span class="text-truncate">' . htmlspecialchars($item['name']) . '</span>';
+                $html .= '<span class="alert-badge-near">Near Expiry</span>';
+                $html .= '</div>';
             }
         }
 
-        $html .= '<br><button onclick="document.getElementById(\'expiryAlert\').remove()">OK</button>';
-        $html .= '</div>';
+        $html .= '</div></div>';
 
         return $html;
     }

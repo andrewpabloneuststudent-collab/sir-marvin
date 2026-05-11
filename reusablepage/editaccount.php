@@ -11,21 +11,21 @@
                 <div class="modal-body">
 
                     <input type="hidden" name="id" value="<?= $u['id'] ?>">
+                    <input name="username" class="form-control mb-2" value="<?= $u['username'] ?>" placeholder="Username">
+                    <input name="firstname" class="form-control mb-2" value="<?= $u['firstname'] ?>" placeholder="Firstname">
+                    <input name="middlename" class="form-control mb-2" value="<?= $u['middlename'] ?>" placeholder="Middlename">
+                    <input name="lastname" class="form-control mb-2" value="<?= $u['lastname'] ?>" placeholder="Lastname">
 
-                    <input name="firstname" class="form-control mb-2" value="<?= $u['firstname'] ?>">
-                    <input name="middlename" class="form-control mb-2" value="<?= $u['middlename'] ?>">
-                    <input name="lastname" class="form-control mb-2" value="<?= $u['lastname'] ?>">
+                    <input type="number" name="age" class="form-control mb-2" value="<?= $u['age'] ?>" placeholder="Age">
 
-                    <input type="number" name="age" class="form-control mb-2" value="<?= $u['age'] ?>">
+                    <input name="contactnumber" class="form-control mb-2" value="<?= $u['contactnumber'] ?>" placeholder="Contact Number">
+                    <input type="email" name="email" class="form-control mb-2" value="<?= $u['email'] ?>" placeholder="Email">
 
-                    <input name="contactnumber" class="form-control mb-2" value="<?= $u['contactnumber'] ?>">
-                    <input type="email" name="email" class="form-control mb-2" value="<?= $u['email'] ?>">
-
-                    <input name="street" class="form-control mb-2" value="<?= $u['street'] ?>">
-                    <input name="barangay" class="form-control mb-2" value="<?= $u['barangay'] ?>">
-                    <input name="city" class="form-control mb-2" value="<?= $u['city'] ?>">
-                    <input name="province" class="form-control mb-2" value="<?= $u['province'] ?>">
-                    <input name="country" class="form-control mb-2" value="<?= $u['country'] ?>">
+                    <input name="street" class="form-control mb-2" value="<?= $u['street'] ?>" placeholder="Street">
+                    <input name="barangay" class="form-control mb-2" value="<?= $u['barangay'] ?>" placeholder="Barangay">
+                    <input name="city" class="form-control mb-2" value="<?= $u['city'] ?>" placeholder="City">
+                    <input name="province" class="form-control mb-2" value="<?= $u['province'] ?>" placeholder="Province">
+                    <input name="country" class="form-control mb-2" value="<?= $u['country'] ?>" placeholder="Country">
 
                     <select name="position" class="form-control mb-2">
                         <option value="Admin" <?= $u['position']=='Admin'?'selected':'' ?>>Admin</option>
@@ -33,6 +33,8 @@
                         <option value="Staff" <?= $u['position']=='Staff'?'selected':'' ?>>Staff</option>
                     </select>
 
+                    <input name="void_password" class="form-control mb-2" value="<?= $u['void_password'] ?>" maxlength="7" placeholder="Void Password">
+                    <input name="password" class="form-control mb-2" maxlength="16" placeholder="Enter new password">
                 </div>
 
                 <div class="modal-footer">

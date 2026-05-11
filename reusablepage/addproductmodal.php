@@ -16,7 +16,7 @@ $classifications = $product->getClassifications();
     <div class="modal-dialog">
         <div class="modal-content">
 
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 <div class="modal-header">
                     <h5 class="modal-title">Add Product</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -33,7 +33,10 @@ $classifications = $product->getClassifications();
                     <!-- BARCODE -->
                     <div class="mb-2">
                         <label>Barcode</label>
-                        <input type="text" name="barcode" class="form-control">
+                        <div class="input-group">
+                            <input type="text" name="barcode" id="barcode" class="form-control">
+                            <button type="button" class="btn btn-secondary" onclick="generateBarcode()">Auto</button>
+                        </div>
                     </div>
 
                     <!-- CATEGORY -->
@@ -65,29 +68,37 @@ $classifications = $product->getClassifications();
                     <!-- UNIT -->
                     <div class="mb-2">
                         <label>Unit</label>
-                        <input type="text" name="unit" class="form-control">
+                        <input type="text" name="unit" class="form-control" placeholder="ex 1pc" required maxlength="20">
                     </div>
 
                     <!-- PRICE -->
                     <div class="mb-2">
                         <label>Net Price</label>
-                        <input type="number" step="0.01" name="net_price" class="form-control" required>
+                        <input type="number" step="0.01" name="net_price" class="form-control" required min="0.01">
                     </div>
+
+                    <!-- SRP PRICE -->
                     <div class="mb-2">
-                        <label>Total Price</label>
-                        <input type="number" step="0.01" name="total_price" class="form-control" required>
+                        <label>Sale Price</label>
+                        <input type="number" step="0.01" name="total_price" class="form-control" required min="0.01">
                     </div>
 
                     <!-- STOCK -->
                     <div class="mb-2">
                         <label>Initial Stock</label>
-                        <input type="number" name="quantity" class="form-control" required>
+                        <input type="number" name="quantity" class="form-control" required min="0">
                     </div>
 
                     <!-- EXPIRY -->
                     <div class="mb-2">
                         <label>Expiry Date</label>
                         <input type="date" name="expiry_date" class="form-control">
+                    </div>
+
+                    <!-- IMAGE -->
+                    <div class="mb-2">
+                        <label>Product Image</label>
+                        <input type="file" name="product_image" class="form-control" accept="image/*">
                     </div>
 
                 </div>
@@ -102,3 +113,4 @@ $classifications = $product->getClassifications();
         </div>
     </div>
 </div>
+<script src="../js/auto_generatebarcode.js"></script>

@@ -2,7 +2,7 @@
 
 namespace Classes;
 // PDO DB
-require_once "../conn/Database.php";
+require_once "../conn/database.php";
 
 class UserRegistration
 {
@@ -28,11 +28,16 @@ class UserRegistration
     public string $contactnumber;
 
     private $con;
-    private string $response;
+    private string $response = "";
 
     public function __construct($db)
     {
         $this->con = $db;
+    }
+
+    public function getResponse()
+    {
+        return $this->response;
     }
 
     public function getPost()
@@ -64,11 +69,23 @@ class UserRegistration
         if (isset($_POST['pre_addUser'])) {
             $this->getPost();
 
-            // Check if username already exists
-            $stmt = $this->con->prepare("SELECT id FROM users WHERE username = ?");
-            $stmt->execute([$this->username]);
+            // Check if username already exists in users or pre_approved_users
+            $stmt = $this->con->prepare("SELECT id FROM users WHERE username = ? UNION SELECT id FROM pre_approved_users WHERE username = ?");
+            $stmt->execute([$this->username, $this->username]);
             if ($stmt->fetch()) {
                 $this->response = "Username already exists";
+                return false;
+            }
+
+            // Check if real name already exists
+            $stmt = $this->con->prepare("
+                SELECT user_id FROM users_info WHERE firstname = ? AND lastname = ?
+                UNION
+                SELECT pre_user_id FROM pre_approved_users_info WHERE firstname = ? AND lastname = ?
+            ");
+            $stmt->execute([$this->firstname, $this->lastname, $this->firstname, $this->lastname]);
+            if ($stmt->fetch()) {
+                $this->response = "A user with this name already exists";
                 return false;
             }
 
