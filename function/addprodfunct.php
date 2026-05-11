@@ -3,6 +3,7 @@
 namespace Classes;
 
 require_once "../conn/Database.php";
+require_once "file_upload.php";
 
 class ProductManagement
 {
@@ -44,15 +45,18 @@ class ProductManagement
     private function handleImageUpload()
     {
         if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] == 0) {
-            $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-            $filename = $_FILES['product_image']['name'];
-            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-            if (in_array($ext, $allowed)) {
-                $newFileName = uniqid() . '.' . $ext;
-                $dest = __DIR__ . '/../uploads/products/' . $newFileName;
-                if (move_uploaded_file($_FILES['product_image']['tmp_name'], $dest)) {
-                    return $newFileName;
-                }
+            // Use the fileupload class
+            $uploadDir = __DIR__ . '/../img/'; // Save to img folder
+            
+            // Ensure directory exists
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            
+            $upload = new fileupload($_FILES['product_image'], $uploadDir);
+            
+            if ($upload->upload()) {
+                return $upload->filename; // Return the generated filename
             }
         }
         return '';
@@ -202,6 +206,7 @@ class ProductManagement
         if (isset($_POST['updateProduct'])) {
             $this->getPost();
             $this->id = (int) $_POST['id'];
+            $oldImage = $_POST['old_image'] ?? '';
 
             try {
                 $this->con->beginTransaction();
@@ -223,6 +228,14 @@ class ProductManagement
                 }
 
                 $imagePath = $this->handleImageUpload();
+
+                // If new image uploaded, delete old image
+                if ($imagePath !== '' && !empty($oldImage)) {
+                    $oldImagePath = __DIR__ . '/../img/' . $oldImage;
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
+                }
 
                 // ✏️ UPDATE PRODUCT
                 if ($imagePath !== '') {
