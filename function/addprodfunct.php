@@ -2,8 +2,7 @@
 
 namespace Classes;
 
-require_once "../conn/Database.php";
-require_once "file_upload.php";
+require_once "../conn/database.php";
 
 class ProductManagement
 {
@@ -45,18 +44,15 @@ class ProductManagement
     private function handleImageUpload()
     {
         if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] == 0) {
-            // Use the fileupload class
-            $uploadDir = __DIR__ . '/../img/'; // Save to img folder
-            
-            // Ensure directory exists
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
-            
-            $upload = new fileupload($_FILES['product_image'], $uploadDir);
-            
-            if ($upload->upload()) {
-                return $upload->filename; // Return the generated filename
+            $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            $filename = $_FILES['product_image']['name'];
+            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            if (in_array($ext, $allowed)) {
+                $newFileName = uniqid() . '.' . $ext;
+                $dest = __DIR__ . '/../uploads/products/' . $newFileName;
+                if (move_uploaded_file($_FILES['product_image']['tmp_name'], $dest)) {
+                    return $newFileName;
+                }
             }
         }
         return '';
@@ -206,7 +202,6 @@ class ProductManagement
         if (isset($_POST['updateProduct'])) {
             $this->getPost();
             $this->id = (int) $_POST['id'];
-            $oldImage = $_POST['old_image'] ?? '';
 
             try {
                 $this->con->beginTransaction();
@@ -228,14 +223,6 @@ class ProductManagement
                 }
 
                 $imagePath = $this->handleImageUpload();
-
-                // If new image uploaded, delete old image
-                if ($imagePath !== '' && !empty($oldImage)) {
-                    $oldImagePath = __DIR__ . '/../img/' . $oldImage;
-                    if (file_exists($oldImagePath)) {
-                        unlink($oldImagePath);
-                    }
-                }
 
                 // ✏️ UPDATE PRODUCT
                 if ($imagePath !== '') {
@@ -373,20 +360,19 @@ class ProductManagement
         }
 
         $html = '<div id="lowStockAlert">';
-        $html .= '<div class="d-flex justify-content-between align-items-center mb-3">';
-        $html .= '<h5 class="mb-0 text-warning"><i class="fas fa-exclamation-triangle me-2"></i>Low Stock</h5>';
-        $html .= '<button type="button" class="btn-close btn-close-sm" onclick="this.parentElement.parentElement.remove()"></button>';
+        $html .= '<div class="alert-header">';
+        $html .= '<h5><i class="fas fa-triangle-exclamation"></i> Low Stock</h5>';
+        $html .= '<button type="button" class="btn-close" onclick="this.closest(\'#lowStockAlert\').remove()"></button>';
         $html .= '</div><div class="alert-items-container">';
 
         foreach ($items as $item) {
-            $html .= '<div class="alert-item d-flex justify-content-between mb-2 pb-2 border-bottom">';
-            $html .= '<span class="text-truncate pe-2">' . htmlspecialchars($item['product_name']) . '</span>';
-            $html .= '<span class="badge bg-warning text-dark">' . $item['quantity'] . ' left</span>';
+            $html .= '<div class="alert-item">';
+            $html .= '<span class="text-truncate">' . htmlspecialchars($item['product_name']) . '</span>';
+            $html .= '<span class="alert-badge-stock">' . $item['quantity'] . ' left</span>';
             $html .= '</div>';
         }
 
-        $html .= '</div>';
-        $html .= '</div>';
+        $html .= '</div></div>';
 
         return $html;
     }
@@ -422,25 +408,26 @@ class ProductManagement
         }
 
         $html = '<div id="expiryAlert">';
-        $html .= '<div class="d-flex justify-content-between align-items-center mb-3">';
-        $html .= '<h5 class="mb-0 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Expiring Soon</h5>';
-        $html .= '<button type="button" class="btn-close btn-close-sm" onclick="this.parentElement.parentElement.remove()"></button>';
+        $html .= '<div class="alert-header">';
+        $html .= '<h5><i class="fas fa-calendar-xmark"></i> Expiring Soon</h5>';
+        $html .= '<button type="button" class="btn-close" onclick="this.closest(\'#expiryAlert\').remove()"></button>';
         $html .= '</div><div class="alert-items-container">';
 
         foreach ($items as $item) {
             if ($item['status'] === 'Expired') {
-                $html .= '<div class="alert-item d-flex justify-content-between mb-2 pb-2 border-bottom">';
-                $html .= '<span class="text-truncate pe-2">' . htmlspecialchars($item['name']) . '</span>';
-                $html .= '<span class="badge bg-danger">Expired</span></div>';
+                $html .= '<div class="alert-item">';
+                $html .= '<span class="text-truncate">' . htmlspecialchars($item['name']) . '</span>';
+                $html .= '<span class="alert-badge-expired">Expired</span>';
+                $html .= '</div>';
             } else {
-                $html .= '<div class="alert-item d-flex justify-content-between mb-2 pb-2 border-bottom">';
-                $html .= '<span class="text-truncate pe-2">' . htmlspecialchars($item['name']) . '</span>';
-                $html .= '<span class="badge bg-warning text-dark">Near Expiry</span></div>';
+                $html .= '<div class="alert-item">';
+                $html .= '<span class="text-truncate">' . htmlspecialchars($item['name']) . '</span>';
+                $html .= '<span class="alert-badge-near">Near Expiry</span>';
+                $html .= '</div>';
             }
         }
 
-        $html .= '</div>';
-        $html .= '</div>';
+        $html .= '</div></div>';
 
         return $html;
     }

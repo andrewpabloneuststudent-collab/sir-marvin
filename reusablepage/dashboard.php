@@ -43,7 +43,7 @@ date_default_timezone_set('Asia/Manila');
   <!-- ── Stat Cards ── -->
   <div class="row g-3 mb-4">
     <div class="col-6 col-xl-3">
-      <div class="stat-card">
+      <div class="stat-card card-red">
         <div class="stat-icon blue"><i class="fas fa-peso-sign"></i></div>
         <div>
           <div class="stat-label">Today's Sales</div>
@@ -53,7 +53,7 @@ date_default_timezone_set('Asia/Manila');
       </div>
     </div>
     <div class="col-6 col-xl-3">
-      <div class="stat-card">
+      <div class="stat-card card-rose">
         <div class="stat-icon green"><i class="fas fa-chart-line"></i></div>
         <div>
           <div class="stat-label">Monthly Sales</div>
@@ -63,7 +63,7 @@ date_default_timezone_set('Asia/Manila');
       </div>
     </div>
     <div class="col-6 col-xl-3">
-      <div class="stat-card">
+      <div class="stat-card card-teal">
         <div class="stat-icon cyan"><i class="fas fa-receipt"></i></div>
         <div>
           <div class="stat-label">Transactions</div>
@@ -73,7 +73,7 @@ date_default_timezone_set('Asia/Manila');
       </div>
     </div>
     <div class="col-6 col-xl-3">
-      <div class="stat-card">
+      <div class="stat-card card-indigo">
         <div class="stat-icon amber"><i class="fas fa-boxes-stacked"></i></div>
         <div>
           <div class="stat-label">Total Products</div>
@@ -89,8 +89,8 @@ date_default_timezone_set('Asia/Manila');
     <div class="col-12">
       <div class="dash-card">
         <div class="dash-card-header">
-          <h6><i class="fas fa-bar-chart me-2 text-success"></i>Monthly Sales Performance</h6>
-          <span class="pill pill-green"><?php echo date('Y'); ?></span>
+          <h6><i class="fas fa-chart-bar me-2" style="color:#c0392b;"></i>Monthly Sales Performance</h6>
+          <span class="pill pill-red"><?php echo date('Y'); ?></span>
         </div>
         <div class="dash-card-body">
           <div class="chart-wrapper">
@@ -240,4 +240,4 @@ date_default_timezone_set('Asia/Manila');
 </div><!-- end .dash-wrapper -->
 
 <!-- Dashboard Chart -->
-<script src="../js/dashboard.js"></script>
+<script src="../js/dashboard.js?v=2.0"></script>

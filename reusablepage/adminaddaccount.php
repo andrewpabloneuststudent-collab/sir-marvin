@@ -1,5 +1,5 @@
 <?php 
-include("../conn/connection_links.php");
+// connection_links.php is already loaded by parent dashboard
 ?>
 
 <div class="container mt-4">
@@ -7,7 +7,7 @@ include("../conn/connection_links.php");
     <div class="card shadow-lg border-0">
         
         <!-- HEADER -->
-        <div class="card-header bg-primary text-white">
+        <div class="card-header text-white" style="background:linear-gradient(135deg,#c0392b,#e74c3c);">
             <h4 class="mb-0">Add User</h4>
         </div>
 
@@ -16,18 +16,18 @@ include("../conn/connection_links.php");
             <form method="POST" action="">
 
                 <!-- 🔐 ACCOUNT -->
-                <h6 class="text-primary">Account Information</h6>
+                <h6 style="color:#c0392b; font-weight:700;">Account Information</h6>
                 <hr>
 
                 <div class="row">
                     <div class="col-md-6">
                         <label class="form-label">Username</label>
-                        <input type="text" name="username" class="form-control mb-3" required>
+                        <input type="text" name="username" class="form-control mb-3" required minlength="4" maxlength="20">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Password</label>
-                        <input type="password" name="password" class="form-control mb-3" required>
+                        <input type="password" name="password" class="form-control mb-3" required minlength="8">
                     </div>
                 </div>
 
@@ -40,49 +40,49 @@ include("../conn/connection_links.php");
                 </div>
 
                 <!-- 👤 PERSONAL -->
-                <h6 class="text-primary mt-4">Personal Information</h6>
+                <h6 class="mt-4" style="color:#c0392b; font-weight:700;">Personal Information</h6>
                 <hr>
 
                 <div class="row">
                     <div class="col-md-4">
                         <label class="form-label">First Name</label>
-                        <input type="text" name="firstname" class="form-control mb-3" required>
+                        <input type="text" name="firstname" class="form-control mb-3" required maxlength="50">
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label">Middle Name</label>
-                        <input type="text" name="middlename" class="form-control mb-3">
+                        <input type="text" name="middlename" class="form-control mb-3" maxlength="50">
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label">Last Name</label>
-                        <input type="text" name="lastname" class="form-control mb-3" required>
+                        <input type="text" name="lastname" class="form-control mb-3" required maxlength="50">
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Age</label>
-                    <input type="number" name="age" class="form-control">
+                    <input type="number" name="age" class="form-control" required min="18" max="100">
                 </div>
 
                 <!-- 📧 CONTACT -->
-                <h6 class="text-primary mt-4">Contact Information</h6>
+                <h6 class="mt-4" style="color:#c0392b; font-weight:700;">Contact Information</h6>
                 <hr>
 
                 <div class="row">
                     <div class="col-md-6">
                         <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control mb-3">
+                        <input type="email" name="email" class="form-control mb-3" required>
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Contact Number</label>
-                        <input type="text" name="contactnumber" class="form-control mb-3">
+                        <input type="text" name="contactnumber" class="form-control mb-3" required minlength="11" maxlength="11" pattern="09[0-9]{9}">
                     </div>
                 </div>
 
                 <!-- 📍 ADDRESS -->
-                <h6 class="text-primary mt-4">Address</h6>
+                <h6 class="mt-4" style="color:#c0392b; font-weight:700;">Address</h6>
                 <hr>
 
                 <div class="mb-2">
@@ -109,7 +109,7 @@ include("../conn/connection_links.php");
                 <!-- ACTION BUTTONS -->
                 <div class="d-flex justify-content-between mt-4">
                     <button type="submit" name="pre_addUser" class="btn btn-success px-4">
-                        💾 Save User
+                        <i class="fas fa-save me-1"></i> Save User
                     </button>
                 </div>
 

@@ -3,16 +3,16 @@
    ═══════════════════════════════════════════════════════════ */
 
 :root {
-    --wp-primary: #2271b1;      /* WordPress Blue */
-    --wp-primary-hover: #135e96;
-    --wp-success: #00a32a;
+    --wp-primary: #c0392b;       /* Pharmacy Red */
+    --wp-primary-hover: #a93226;
+    --wp-success: #c0392b;       /* Also red for pay button */
     --wp-danger: #d63638;
-    --wp-bg: #f0f0f1;
+    --wp-bg: #f5f5f5;
     --wp-card: #ffffff;
-    --wp-border: #dcdcde;
-    --wp-text: #1d2327;
-    --wp-text-light: #50575e;
-    --wp-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    --wp-border: #e0e0e0;
+    --wp-text: #1a1a2e;
+    --wp-text-light: #6b7280;
+    --wp-shadow: 0 2px 8px rgba(192,57,43,0.08);
 }
 
 .wepos-wrapper {
@@ -142,9 +142,9 @@
 .wepos-product-card {
     background: var(--wp-card);
     border: 1px solid var(--wp-border);
-    border-radius: 4px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: box-shadow 0.15s, transform 0.1s, border-color 0.1s;
+    transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -152,23 +152,24 @@
 }
 
 .wepos-product-card:hover {
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    box-shadow: 0 6px 20px rgba(192,57,43,0.15);
     border-color: var(--wp-primary);
+    transform: translateY(-2px);
 }
 
 .wepos-product-card:active {
-    transform: translateY(1px);
+    transform: translateY(0px);
 }
 
 .wepos-card-add-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(34, 113, 177, 0.05);
+    background: rgba(192,57,43,0.06);
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: opacity 0.15s;
+    transition: opacity 0.2s;
     z-index: 5;
 }
 
@@ -193,14 +194,36 @@
 }
 
 .wepos-product-card.flash-add {
-    border-color: var(--wp-success);
-    background: #f0fdf4;
+    border-color: var(--wp-primary);
+    background: #fff5f5;
 }
 
-.wepos-product-card.out-of-stock {
+.wepos-product-card.out-of-stock,
+.wepos-product-card.expired-product {
     opacity: 0.5;
     pointer-events: none;
     filter: grayscale(100%);
+}
+
+.wepos-product-card.expired-product {
+    border-color: #fee2e2;
+    background: #fffafa;
+}
+
+
+
+.wepos-modal-sm {
+    max-width: 400px;
+}
+
+.wepos-btn-danger {
+    background: #dc2626;
+    color: white;
+    border: none;
+}
+
+.wepos-btn-danger:hover {
+    background: #b91c1c;
 }
 
 .wepos-card-img {
@@ -347,7 +370,7 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; background: #f0f6fc; }
+    from { opacity: 0; background: #fff5f5; }
     to { opacity: 1; background: transparent; }
 }
 
@@ -449,31 +472,35 @@
 }
 
 .wepos-grand-total {
-    font-size: 20px !important;
+    font-size: 22px !important;
     font-weight: 700 !important;
-    color: var(--wp-success) !important;
+    color: var(--wp-primary) !important;
 }
 
 .wepos-pay-btn {
     width: 100%;
-    padding: 18px;
-    background: var(--wp-success);
+    padding: 20px;
+    background: linear-gradient(135deg, #c0392b, #e74c3c);
     color: #fff;
     border: none;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
     display: flex;
     justify-content: space-between;
+    align-items: center;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: all 0.2s;
+    text-transform: uppercase;
 }
 
 .wepos-pay-btn:hover:not(:disabled) {
-    background: #008a20;
+    background: linear-gradient(135deg, #a93226, #c0392b);
+    box-shadow: 0 4px 12px rgba(192,57,43,0.4);
 }
 
 .wepos-pay-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
 }
 
@@ -487,18 +514,20 @@
 }
 
 .wepos-btn-outline {
-    background: #f6f7f7;
+    background: #fff;
     border: 1px solid var(--wp-primary);
     color: var(--wp-primary);
+    transition: all 0.15s;
 }
-.wepos-btn-outline:hover { background: #f0f6fc; }
+.wepos-btn-outline:hover { background: #fff5f5; }
 
 .wepos-btn-primary {
     background: var(--wp-primary);
     border: 1px solid var(--wp-primary);
     color: #fff;
+    transition: all 0.15s;
 }
-.wepos-btn-primary:hover { background: var(--wp-primary-hover); }
+.wepos-btn-primary:hover { background: var(--wp-primary-hover); box-shadow: 0 2px 6px rgba(192,57,43,0.3); }
 
 .wepos-btn-icon {
     background: none;
@@ -554,7 +583,7 @@
 .wepos-pay-method {
     flex: 1; padding: 12px; border: 1px solid #8c8f94; border-radius: 3px; background: #fff; cursor: pointer; font-weight: 600; color: var(--wp-text-light);
 }
-.wepos-pay-method.active { border-color: var(--wp-primary); background: #f0f6fc; color: var(--wp-primary); }
+.wepos-pay-method.active { border-color: var(--wp-primary); background: #fff5f5; color: var(--wp-primary); }
 
 .wepos-input-lg { width: 100%; padding: 12px; font-size: 20px; font-weight: 600; text-align: center; border: 1px solid #8c8f94; border-radius: 3px; }
 .wepos-input-lg:focus { outline: none; border-color: var(--wp-primary); box-shadow: 0 0 0 1px var(--wp-primary); }
@@ -563,8 +592,8 @@
 .wepos-quick-cash button { flex: 1; padding: 8px; background: #f6f7f7; border: 1px solid var(--wp-border); border-radius: 3px; cursor: pointer; }
 .wepos-quick-cash button:hover { background: #e0e0e1; }
 
-.wepos-change-box { text-align: center; margin-top: 20px; padding: 15px; background: #f0f6fc; border-radius: 4px; }
-.wepos-change-box strong { font-size: 24px; color: var(--wp-success); display: block; }
+.wepos-change-box { text-align: center; margin-top: 20px; padding: 15px; background: #fff5f5; border-radius: 8px; border: 1px solid #fca5a5; }
+.wepos-change-box strong { font-size: 26px; color: var(--wp-primary); display: block; }
 
 .wepos-modal-foot { padding: 16px 20px; border-top: 1px solid var(--wp-border); display: flex; justify-content: flex-end; gap: 10px; background: #fcfcfc; }
 

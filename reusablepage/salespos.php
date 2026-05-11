@@ -16,7 +16,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
 ?>
 
 <!-- wePOS Inspired CSS -->
-<link rel="stylesheet" href="../css/pos_wepos.css?v=1.3">
+<link rel="stylesheet" href="../css/pos_wepos.css?v=1.4">
 
 <div class="wepos-wrapper" id="weposApp">
     
@@ -30,7 +30,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
                 <input type="text" id="weposSearch" placeholder="Scan barcode or search products..." autocomplete="off">
                 <kbd>F2</kbd>
             </div>
-            <button class="wepos-btn wepos-btn-outline" onclick="location.reload()">
+            <button type="button" class="wepos-btn wepos-btn-outline" onclick="location.reload()">
                 <i class="fas fa-sync-alt"></i> Refresh
             </button>
         </div>
@@ -39,7 +39,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
         <div class="wepos-categories">
             <button class="wepos-cat-btn active" onclick="weposFilterCat('All')">All</button>
             <?php foreach ($categories as $cat): ?>
-                <button class="wepos-cat-btn" onclick="weposFilterCat('<?= htmlspecialchars($cat['category_name']) ?>')">
+                <button type="button" class="wepos-cat-btn" onclick="weposFilterCat('<?= htmlspecialchars($cat['category_name']) ?>')">
                     <?= htmlspecialchars($cat['category_name']) ?>
                 </button>
             <?php endforeach; ?>
@@ -52,9 +52,9 @@ $isManager = in_array($userRole, ['owner', 'admin']);
                     <?php 
                         $stock = (int)($row['stock'] ?? 0);
                         $isOut = $stock <= 0;
-                        $image = !empty($row['imageproduct']) ? "../img/" . $row['imageproduct'] : "";
+                        $image = !empty($row['imageproduct']) ? "../uploads/products/" . $row['imageproduct'] : "";
                     ?>
-                    <div class="wepos-product-card <?= $isOut ? 'out-of-stock' : '' ?>"
+                    <div class="wepos-product-card <?= ($row['is_expired'] == 1) ? 'expired-product' : ($isOut ? 'out-of-stock' : '') ?>"
                          data-id="<?= $row['id'] ?>"
                          data-name="<?= htmlspecialchars($row['product_name']) ?>"
                          data-price="<?= $row['total_price'] ?>"
@@ -65,9 +65,12 @@ $isManager = in_array($userRole, ['owner', 'admin']);
                          data-senior="<?= (int)($row['senior_discount'] ?? 0) ?>"
                          data-pwd="<?= (int)($row['pwd_discount'] ?? 0) ?>"
                          data-stock="<?= $stock ?>"
+                         data-is-expired="<?= (int)$row['is_expired'] ?>"
                          onclick="weposAddToCart(this)">
                         
                         <div class="wepos-card-img">
+
+                            
                             <?php if ($image): ?>
                                 <img src="<?= $image ?>" alt="">
                             <?php else: ?>
@@ -75,7 +78,9 @@ $isManager = in_array($userRole, ['owner', 'admin']);
                             <?php endif; ?>
                             
                             <!-- Stock Indicator -->
-                            <?php if ($isOut): ?>
+                            <?php if ($row['is_expired'] == 1): ?>
+                                <span class="wepos-stock-badge empty">Expired</span>
+                            <?php elseif ($isOut): ?>
                                 <span class="wepos-stock-badge empty">Out of Stock</span>
                             <?php else: ?>
                                 <span class="wepos-stock-badge <?= $stock <= 10 ? 'low' : '' ?>"><?= $stock ?> in stock</span>
@@ -107,7 +112,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
         <div class="wepos-cart-header">
             <span style="font-size:13px; font-weight:600; color:#50575e;"><i class="fas fa-shopping-cart me-1"></i> Current Order</span>
             <div class="wepos-cart-actions">
-                <button class="wepos-btn wepos-btn-icon text-danger" title="Clear Cart (F8)" onclick="weposClearCart()">
+                <button type="button" class="wepos-btn wepos-btn-icon text-danger" title="Clear Cart (F8)" onclick="weposClearCart()">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </div>
@@ -142,7 +147,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
             
             <!-- Discount Selection -->
             <div class="wepos-discount-row">
-                <div class="wepos-discount-label"><i class="fas fa-tags text-primary"></i> Apply Discount</div>
+                <div class="wepos-discount-label"><i class="fas fa-tags" style="color:#c0392b;"></i> Apply Discount</div>
                 <select id="weposDiscount" class="wepos-select" onchange="weposOnDiscountChange(this)">
                     <?php foreach ($discounts as $d): ?>
                         <option value="<?= $d['id'] ?>" 
@@ -169,6 +174,10 @@ $isManager = in_array($userRole, ['owner', 'admin']);
                     <span>VAT Exemption</span>
                     <span id="calcVatExempt">-₱0.00</span>
                 </div>
+                <div class="wepos-calc-row text-muted" id="rowVat">
+                    <span>VAT (12%)</span>
+                    <span id="calcVat">₱0.00</span>
+                </div>
 
                 <div class="wepos-calc-row total-row">
                     <span>Total Due</span>
@@ -177,7 +186,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
             </div>
 
             <!-- Pay Button -->
-            <button class="wepos-pay-btn" id="weposPayBtn" onclick="weposOpenPayModal()" disabled>
+            <button type="button" class="wepos-pay-btn" id="weposPayBtn" onclick="weposOpenPayModal()" disabled>
                 <span>Pay Now</span>
                 <span class="wepos-pay-amount" id="btnTotalAmount">₱0.00</span>
             </button>
@@ -197,7 +206,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
         <div class="wepos-modal-body">
             
             <div class="wepos-modal-totals">
-                <div class="wepos-modal-amt">Amount Due: <strong class="text-primary" id="modalAmountDue">₱0.00</strong></div>
+                <div class="wepos-modal-amt">Amount Due: <strong style="color:#c0392b;" id="modalAmountDue">₱0.00</strong></div>
             </div>
 
             <!-- Checkout Items with Override -->
@@ -207,7 +216,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
 
             <div class="wepos-tendered-box">
                 <label>Amount Tendered (₱)</label>
-                <input type="number" id="weposTendered" class="wepos-input-lg" placeholder="" oninput="weposCalcChange()" autofocus>
+                <input type="number" id="weposTendered" class="wepos-input-lg" placeholder="" oninput="weposCalcChange()" onblur="weposCheckTendered()" autofocus>
                 
                 <div class="wepos-quick-cash" id="weposQuickCash"></div>
             </div>
@@ -219,8 +228,8 @@ $isManager = in_array($userRole, ['owner', 'admin']);
 
         </div>
         <div class="wepos-modal-foot">
-            <button class="wepos-btn wepos-btn-outline" onclick="weposClosePayModal()">Cancel</button>
-            <button class="wepos-btn wepos-btn-primary" id="modalConfirmBtn" onclick="weposSubmitTransaction()" disabled>Confirm Payment</button>
+            <button type="button" class="wepos-btn wepos-btn-outline" onclick="weposClosePayModal()">Cancel</button>
+            <button type="button" class="wepos-btn wepos-btn-primary" id="weposModalConfirmBtn" onclick="weposSubmitTransaction()" disabled>Confirm Payment</button>
         </div>
     </div>
 </div>
@@ -230,7 +239,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
     <div class="wepos-modal" onclick="event.stopPropagation()">
         <div class="wepos-modal-head" style="background: #fff3cd;">
             <h5 style="color: #856404;"><i class="fas fa-shield-alt"></i> Manager Approval Required</h5>
-            <button onclick="weposCancelOverride()"><i class="fas fa-times"></i></button>
+            <button type="button" onclick="weposCancelOverride()"><i class="fas fa-times"></i></button>
         </div>
         <div class="wepos-modal-body">
             <p class="text-muted" style="font-size:0.9rem; margin-bottom:1rem;">
@@ -297,7 +306,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
     <div class="wepos-modal" onclick="event.stopPropagation()" style="max-width:400px; border-radius:8px;">
         <div class="wepos-modal-head" style="background:#f0fdf4; border-bottom:1px solid #bbf7d0;">
             <h5 style="color:#15803d;"><i class="fas fa-receipt"></i> Payment Successful</h5>
-            <button onclick="weposCloseReceipt()"><i class="fas fa-times"></i></button>
+            <button type="button" onclick="weposCloseReceipt()"><i class="fas fa-times"></i></button>
         </div>
         <div class="wepos-modal-body" id="weposReceiptBody" style="padding:0;">
 
@@ -348,10 +357,10 @@ $isManager = in_array($userRole, ['owner', 'admin']);
 
         </div>
         <div class="wepos-modal-foot" style="gap:10px;">
-            <button class="wepos-btn wepos-btn-outline" onclick="weposPrintReceipt()">
+            <button type="button" class="wepos-btn wepos-btn-outline" onclick="weposPrintReceipt()">
                 <i class="fas fa-print"></i> Print Receipt
             </button>
-            <button class="wepos-btn wepos-btn-primary" onclick="weposCloseReceipt()">
+            <button type="button" class="wepos-btn wepos-btn-primary" onclick="weposCloseReceipt()">
                 Done
             </button>
         </div>
@@ -363,7 +372,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
     <div class="wepos-modal" onclick="event.stopPropagation()">
         <div class="wepos-modal-head" style="background: #eef2ff; border-bottom: 1px solid #c7d2fe;">
             <h5 style="color: #3730a3;" id="verifyIdTitle"><i class="fas fa-id-card"></i> ID Verification</h5>
-            <button onclick="weposCancelVerifyId()"><i class="fas fa-times"></i></button>
+            <button type="button" onclick="weposCancelVerifyId()"><i class="fas fa-times"></i></button>
         </div>
         <div class="wepos-modal-body">
             <p class="text-muted" style="font-size:0.9rem; margin-bottom:1rem;">
@@ -387,8 +396,8 @@ $isManager = in_array($userRole, ['owner', 'admin']);
             </div>
         </div>
         <div class="wepos-modal-foot" id="verifyIdFootInitial">
-            <button class="wepos-btn wepos-btn-outline" onclick="weposCancelVerifyId()">Cancel</button>
-            <button class="wepos-btn wepos-btn-primary" id="verifyIdBtn" onclick="weposSubmitVerifyId()">Verify</button>
+            <button type="button" class="wepos-btn wepos-btn-outline" onclick="weposCancelVerifyId()">Cancel</button>
+            <button type="button" class="wepos-btn wepos-btn-primary" id="verifyIdBtn" onclick="weposSubmitVerifyId()">Verify</button>
         </div>
         <div class="wepos-modal-foot" id="verifyIdFootManual" style="display:none; justify-content: space-between;">
             <button class="wepos-btn wepos-btn-outline" style="color: #dc2626; border-color: #dc2626;" onclick="weposDeclineVerify()">Decline</button>
@@ -401,8 +410,40 @@ $isManager = in_array($userRole, ['owner', 'admin']);
 </div>
 
 
+<!-- ═══════════════ CUSTOM CONFIRM MODAL ═══════════════ -->
+<div class="wepos-modal-overlay" id="weposConfirmModal" style="display:none;" onclick="event.stopPropagation()">
+    <div class="wepos-modal" style="max-width: 400px;" onclick="event.stopPropagation()">
+        <div class="wepos-modal-body" style="text-align:center; padding: 2rem;">
+            <div id="weposConfirmIcon" style="font-size: 3.5rem; margin-bottom: 1.2rem; color: #f59e0b;">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h4 id="weposConfirmTitle" style="font-weight:800; margin-bottom:0.7rem; color: #1e293b;">Are you sure?</h4>
+            <p id="weposConfirmMsg" class="text-muted" style="font-size: 1rem; line-height: 1.5;">Do you really want to clear the entire cart? This action cannot be undone.</p>
+            
+            <div class="d-flex justify-content-center" style="gap:12px; margin-top:2rem;">
+                <button type="button" class="wepos-btn wepos-btn-outline" style="min-width: 100px;" id="weposConfirmCancelBtn">Cancel</button>
+                <button type="button" class="wepos-btn wepos-btn-danger" style="min-width: 100px; background: #dc2626;" id="weposConfirmOkBtn">Yes, Clear</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ NOTIFICATION MODAL ═══════════════ -->
+<div class="wepos-modal-overlay" id="weposNotifModal" style="display:none; z-index:99999;" onclick="document.getElementById('weposNotifModal').style.display='none'">
+    <div class="wepos-modal" style="max-width:380px; text-align:center;" onclick="event.stopPropagation()">
+        <div class="wepos-modal-body" style="padding:2rem 2rem 1rem;">
+            <div id="weposNotifIcon" style="font-size:3rem; margin-bottom:0.75rem;"></div>
+            <h5 id="weposNotifTitle" style="font-weight:700; margin-bottom:0.5rem; color:#1e293b;"></h5>
+            <p id="weposNotifMsg" style="color:#50575e; margin:0; font-size:0.95rem; line-height:1.5;"></p>
+        </div>
+        <div class="wepos-modal-foot">
+            <button type="button" class="wepos-btn wepos-btn-primary" style="min-width:100px;" onclick="document.getElementById('weposNotifModal').style.display='none'">OK</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const WEPOS_ROLE = '<?= $userRole ?>';
     const WEPOS_IS_MANAGER = <?= $isManager ? 'true' : 'false' ?>;
 </script>
-<script src="../js/pos_wepos.js?v=1.4"></script>
+<script src="../js/pos_wepos.js?v=2.7"></script>

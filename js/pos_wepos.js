@@ -3,10 +3,20 @@ let barcodeBuffer = '';
 let barcodeTimer = null;
 let currentPayMethod = 'Cash';
 let pendingOverride = null;
-let pendingVoid = null;           // stores cart item id pending void auth
-let pendingDiscountIndex = null;  // stores previous discount index if user cancels verify
-let weposVerified = false;        // tracks if Senior/PWD customer has been verified this session
-let weposLastReceiptData = null;  // stores last receipt data for printing
+let pendingVoid = null;
+let pendingDiscountIndex = null;
+let weposVerified = false;
+let weposLastReceiptData = null;
+
+// ═════ CUSTOM NOTIFICATION UTILITY ═════
+// Delegates to global showNotif() defined in header.php
+function weposAlert(msg, type) {
+    if (typeof showNotif === 'function') {
+        showNotif(msg, type || 'info');
+    } else {
+        console.warn('[POS]', msg);
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     weposSetupScanner();
@@ -59,7 +69,7 @@ function weposFindAndAdd(code) {
             return true;
         }
     }
-    alert('Product not found or out of stock: ' + code);
+    showNotif('Product not found or out of stock: ' + code, 'warning');
     return false;
 }
 
@@ -98,14 +108,21 @@ function weposAddToCart(cardEl) {
     const id = cardEl.dataset.id;
     const stock = parseInt(cardEl.dataset.stock) || 0;
 
+    const isExpired = cardEl.dataset.isExpired === '1';
+
+    if (isExpired) {
+        weposAlert('This product is EXPIRED and cannot be added to the cart.', 'warning');
+        return;
+    }
+
     if (stock <= 0) {
-        alert('Item is Out of Stock!');
+        weposAlert('This item is Out of Stock!', 'warning');
         return;
     }
 
     if (weposCart[id]) {
         if (weposCart[id].qty >= stock) {
-            alert('Cannot add more. Only ' + stock + ' in stock.');
+            weposAlert('Cannot add more. Only ' + stock + ' in stock.', 'warning');
             return;
         }
         weposCart[id].qty++;
@@ -142,7 +159,7 @@ function weposUpdateQty(id, delta) {
         delete weposCart[id];
     } else if (weposCart[id].qty > weposCart[id].stock) {
         weposCart[id].qty = weposCart[id].stock;
-        alert('Maximum stock reached');
+        weposAlert('Maximum stock reached for this item.', 'warning');
     }
     weposUpdateCart();
 }
@@ -168,12 +185,24 @@ function weposRemoveItem(id) {
 
 function weposClearCart() {
     if (Object.keys(weposCart).length === 0) return;
-    if (confirm('Clear entire cart?')) {
-        weposCart = {};
-        document.getElementById('weposDiscount').selectedIndex = 0;
-        document.getElementById('weposCustomer').value = '';
-        weposUpdateCart();
-    }
+    
+    weposConfirm({
+        title: 'Clear Entire Cart?',
+        msg: 'Do you really want to remove all items from the cart?',
+        okText: 'Yes, Clear',
+        okClass: 'wepos-btn-danger',
+        onOk: () => {
+            weposCart = {};
+            const discEl = document.getElementById('weposDiscount');
+            if (discEl) discEl.selectedIndex = 0;
+            
+            const custEl = document.getElementById('weposCustomer');
+            if (custEl) custEl.value = '';
+            
+            weposVerified = false; // Reset verification on clear
+            weposUpdateCart();
+        }
+    });
 }
 
 // ═════ MATH & DISCOUNT CALCULATION ═════
@@ -195,11 +224,12 @@ function weposCalcItem(item, dRate, isVatExempt) {
         return { gross, vatExempt, discount, vatAmount: 0, final: gross - vatExempt - discount };
     }
 
-    // Auto discount from category flags
-    const isSenior = isVatExempt && item.senior;
-    const isPwd = isVatExempt && item.pwd;
+    // Senior/PWD discount: apply to ALL items once customer is verified
+    // Category flags (item.senior, item.pwd) are secondary — if verified + rate exists, apply
+    const hasSpecialDiscount = weposVerified && dRate > 0;
 
-    if (isSenior || isPwd) {
+    if (hasSpecialDiscount) {
+        // VAT exemption + discount on net price (PH law)
         if (item.hasVat) {
             const net = gross / 1.12;
             vatExempt = gross - net;
@@ -304,6 +334,12 @@ function weposSetTotals(sub, disc, dRate, vatExempt, vat, total) {
         rowVatEx.style.display = 'none';
     }
 
+    const rowVat = document.getElementById('rowVat');
+    if (rowVat) {
+        rowVat.style.display = 'flex';
+        document.getElementById('calcVat').textContent = '₱' + vat.toFixed(2);
+    }
+
     document.getElementById('calcTotal').textContent = '₱' + total.toFixed(2);
     document.getElementById('btnTotalAmount').textContent = '₱' + total.toFixed(2);
 }
@@ -354,7 +390,7 @@ function weposOpenPayModal() {
     document.getElementById('modalAmountDue').textContent = '₱' + total.toFixed(2);
     document.getElementById('weposTendered').value = '';
     document.getElementById('weposChangeBox').style.display = 'none';
-    document.getElementById('modalConfirmBtn').disabled = true;
+    document.getElementById('weposModalConfirmBtn').disabled = true;
 
     // Render checkout items with override buttons
     weposRenderCheckoutItems();
@@ -455,7 +491,7 @@ async function weposSubmitOverride() {
     if (pct <= 0 || pct > 100){ errEl.textContent = 'Enter a valid discount % (1–100).';    errEl.style.display = 'block'; return; }
 
     try {
-        const res = await fetch('../function/verify_override_pin.php', {
+        const res = await fetch('../function/verify_override_pin', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -517,7 +553,7 @@ function weposSelectMethod(btn, method) {
     } else {
         document.querySelector('.wepos-tendered-box').style.display = 'none';
         document.getElementById('weposChangeBox').style.display = 'none';
-        document.getElementById('modalConfirmBtn').disabled = false;
+        document.getElementById('weposModalConfirmBtn').disabled = false;
     }
 }
 
@@ -541,11 +577,11 @@ function weposCalcChange() {
     const change = tendered - total;
 
     const changeBox = document.getElementById('weposChangeBox');
-    const confirmBtn = document.getElementById('modalConfirmBtn');
+    const confirmBtn = document.getElementById('weposModalConfirmBtn');
 
     if (tendered >= total) {
         changeBox.style.display = 'block';
-        document.getElementById('modalChange').textContent = '₱' + change.toFixed(2);
+        document.getElementById('modalChange').textContent = '\u20b1' + change.toFixed(2);
         confirmBtn.disabled = false;
     } else {
         changeBox.style.display = 'none';
@@ -553,34 +589,44 @@ function weposCalcChange() {
     }
 }
 
+// Only called on blur — not on every keystroke
+function weposCheckTendered() {
+    if (currentPayMethod !== 'Cash') return;
+    const total = parseFloat(document.getElementById('btnTotalAmount').textContent.replace('₱', ''));
+    const tendered = parseFloat(document.getElementById('weposTendered').value) || 0;
+    if (tendered > 0 && tendered < total) {
+        weposAlert('Insufficient amount. Please enter at least \u20b1' + total.toFixed(2) + '.', 'error');
+    }
+}
+
 async function weposSubmitTransaction() {
-    const btn = document.getElementById('modalConfirmBtn');
-    btn.disabled = true;
-    btn.innerHTML = 'Processing...';
-
-    const discountSelect = document.getElementById('weposDiscount');
-    const selOpt = discountSelect.options[discountSelect.selectedIndex];
-    const dRate = parseFloat(selOpt.dataset.rate) || 0;
-    const isVatExempt = selOpt.dataset.exempt === '1';
-
-    const items = Object.entries(weposCart).map(([id, item]) => ({
-        id: parseInt(id), price: item.price, qty: item.qty
-    }));
-
-    // Calculate receipt totals before clearing cart
-    let rawSubtotal = 0, totalDiscount = 0, totalVatExempt = 0, finalVat = 0;
-    Object.values(weposCart).forEach(item => {
-        rawSubtotal += item.price * item.qty;
-        const c = weposCalcItem(item, dRate, isVatExempt);
-        totalDiscount   += c.discount;
-        totalVatExempt  += c.vatExempt;
-        finalVat        += c.vatAmount;
-    });
-    const finalTotal = rawSubtotal - totalVatExempt - totalDiscount;
-    const tendered   = parseFloat(document.getElementById('weposTendered')?.value) || finalTotal;
-    const change     = currentPayMethod === 'Cash' ? tendered - finalTotal : 0;
-
     try {
+        const btn = document.getElementById('weposModalConfirmBtn');
+        btn.disabled = true;
+        btn.innerHTML = 'Processing...';
+
+        const discountSelect = document.getElementById('weposDiscount');
+        const selOpt = discountSelect.options[discountSelect.selectedIndex];
+        const dRate = parseFloat(selOpt.dataset.rate) || 0;
+        const isVatExempt = selOpt.dataset.exempt === '1';
+
+        const items = Object.entries(weposCart).map(([id, item]) => ({
+            id: parseInt(id), price: item.price, qty: item.qty
+        }));
+
+        // Calculate receipt totals before clearing cart
+        let rawSubtotal = 0, totalDiscount = 0, totalVatExempt = 0, finalVat = 0;
+        Object.values(weposCart).forEach(item => {
+            rawSubtotal += item.price * item.qty;
+            const c = weposCalcItem(item, dRate, isVatExempt);
+            totalDiscount   += c.discount;
+            totalVatExempt  += c.vatExempt;
+            finalVat        += c.vatAmount;
+        });
+        const finalTotal = rawSubtotal - totalVatExempt - totalDiscount;
+        const tendered   = parseFloat(document.getElementById('weposTendered')?.value) || finalTotal;
+        const change     = currentPayMethod === 'Cash' ? tendered - finalTotal : 0;
+
         const res = await fetch('../function/process_transaction', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -622,14 +668,17 @@ async function weposSubmitTransaction() {
             weposCart = {};
             weposVerified = false;
         } else {
-            alert('Payment Error: ' + result.error);
+            weposAlert('Payment Error: ' + result.error, 'error');
             btn.disabled = false;
             btn.innerHTML = 'Confirm Payment';
         }
     } catch (err) {
-        alert('Network Error. Please try again.');
-        btn.disabled = false;
-        btn.innerHTML = 'Confirm Payment';
+        weposAlert('POS Error: ' + err.message, 'error');
+        const btn = document.getElementById('weposModalConfirmBtn');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = 'Confirm Payment';
+        }
     }
 }
 
@@ -695,7 +744,42 @@ function weposShowReceipt(data) {
 
 function weposCloseReceipt() {
     document.getElementById('weposReceiptModal').style.display = 'none';
-    location.reload();
+    // Redirect to owner dashboard and reset POS state
+    window.location.href = '/MMBPOS/ownerpage/dashboard?tab=sales';
+}
+
+// ═════ CUSTOM CONFIRM UTILITY ═════
+function weposConfirm({ title, msg, okText, okClass, onOk }) {
+    const modal = document.getElementById('weposConfirmModal');
+    const titleEl = document.getElementById('weposConfirmTitle');
+    const msgEl = document.getElementById('weposConfirmMsg');
+    const okBtn = document.getElementById('weposConfirmOkBtn');
+    const cancelBtn = document.getElementById('weposConfirmCancelBtn');
+
+    titleEl.textContent = title || 'Are you sure?';
+    msgEl.textContent = msg || '';
+    okBtn.textContent = okText || 'Confirm';
+    
+    // Reset classes and apply custom one
+    okBtn.className = 'wepos-btn ' + (okClass || 'wepos-btn-primary');
+
+    modal.style.display = 'flex';
+
+    // Cleanup previous listeners
+    const newOkBtn = okBtn.cloneNode(true);
+    okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+    
+    const newCancelBtn = cancelBtn.cloneNode(true);
+    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+    newOkBtn.onclick = () => {
+        modal.style.display = 'none';
+        if (onOk) onOk();
+    };
+
+    newCancelBtn.onclick = () => {
+        modal.style.display = 'none';
+    };
 }
 
 function weposPrintReceipt() {
@@ -830,25 +914,20 @@ async function weposApproveVerify() {
     const type      = document.getElementById('verifyIdModal').getAttribute('data-type');
     const errEl     = document.getElementById('verifyIdError');
 
+    // ✅ Set verified immediately on Accept click — don't wait for DB
+    weposVerified = true;
+    document.getElementById('verifyIdModal').style.display = 'none';
+    weposUpdateCart();
+
+    // Save in background (non-blocking)
     try {
-        const res = await fetch('../function/save_customer_id', {
+        await fetch('../function/save_customer_id', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type, name, id_number })
         });
-        const result = await res.json();
-        
-        if (result.success) {
-            weposVerified = true;
-            document.getElementById('verifyIdModal').style.display = 'none';
-            weposUpdateCart();
-        } else {
-            errEl.textContent = result.error || 'Failed to save customer.';
-            errEl.style.display = 'block';
-        }
     } catch (e) {
-        errEl.textContent = 'Network error. Please try again.';
-        errEl.style.display = 'block';
+        // Silent — discount already applied
     }
 }
 

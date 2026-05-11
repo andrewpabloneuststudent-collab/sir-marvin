@@ -19,7 +19,7 @@ if ($product->updateStock()) {
 // ✅ SHOW SUCCESS ALERT AFTER REDIRECT
 if (isset($_GET['success'])) {
     echo "<script>
-        alert('✅ Updated successfully!');
+        showNotif('Updated successfully!', 'success');
         window.history.replaceState(null, null, window.location.pathname + '?page=inventory');
     </script>";
 }
@@ -38,7 +38,7 @@ echo $product->renderExpiryAlert();
         <!-- HEADER -->
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="mb-0">
-                <i class="fas fa-boxes text-success me-2"></i>Inventory Management
+                <i class="fas fa-boxes me-2" style="color:#c0392b;"></i>Inventory Management
             </h4>
         </div>
 
@@ -96,7 +96,7 @@ echo $product->renderExpiryAlert();
                                 } elseif ($interval->days <= 90 && !$interval->invert) {
                                     echo "<span class='badge bg-warning text-dark'><i class='fas fa-clock me-1'></i>" . htmlspecialchars($expiry) . "</span>";
                                 } else {
-                                    echo "<span class='badge bg-success'><i class='fas fa-calendar-check me-1'></i>" . htmlspecialchars($expiry) . "</span>";
+                                    echo "<span class='badge' style='background:#1a2535; color:#fff;'><i class='fas fa-calendar-check me-1'></i>" . htmlspecialchars($expiry) . "</span>";
                                 }
                             }
                             ?>

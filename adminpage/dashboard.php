@@ -13,7 +13,7 @@ if (strtolower($_SESSION['position']) !== 'admin') {
 
 $activeTab = $_GET['tab'] ?? 'dashboard';
 
-require_once __DIR__ . "/../conn/Database.php";
+require_once __DIR__ . "/../conn/database.php";
 require_once __DIR__ . "/../conn/connection_links.php";
 require_once __DIR__ . "/../function/userregistration.php";
 
@@ -22,16 +22,22 @@ use Classes\UserRegistration;
 $user = new UserRegistration($db);
 
 // ✅ SAFE POST HANDLING
+$error_msg = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($user->pre_addUser()) {
         header("Location: dashboard.php?tab=users&added=1");
         exit;
+    } else {
+        $error_msg = $user->getResponse();
     }
 }
 
 // ✅ ALERT AFTER REDIRECT
 if (isset($_GET['added'])) {
-    echo "<script>alert('User added successfully!');</script>";
+    echo "<script>showNotif('User added successfully!', 'success'); setTimeout(()=>{ window.location.href='dashboard.php?tab=users'; },1500);</script>";
+}
+if (!empty($error_msg)) {
+    echo "<script>showNotif('Error: " . addslashes($error_msg) . "', 'error');</script>";
 }
 ?>
 <!DOCTYPE html>
@@ -40,7 +46,7 @@ if (isset($_GET['added'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admiin Dashboard</title>
+    <title>Admin Dashboard</title>
 
 </head>
 
@@ -57,32 +63,47 @@ if (isset($_GET['added'])) {
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
             </div>
 
-            <div class="offcanvas-body">
-                <div class="nav flex-column nav-pills me-3" role="tablist">
+            <div class="offcanvas-body p-0">
+                <style>
+                    .sidebar-nav { width:200px; min-width:200px; background:#fff; border-right:1px solid #f0f0f0; min-height:100vh; padding:16px 12px; box-shadow:2px 0 8px rgba(0,0,0,.04); }
+                    .sidebar-nav .nav-link { color:#64748b; font-size:.83rem; font-weight:500; padding:9px 12px; border-radius:8px; margin-bottom:2px; display:flex; align-items:center; gap:10px; transition:all .15s; border:none; }
+                    .sidebar-nav .nav-link i { width:18px; text-align:center; font-size:.9rem; opacity:.7; }
+                    .sidebar-nav .nav-link:hover { background:#fff5f5; color:#c0392b !important; }
+                    .sidebar-nav .nav-link:hover i { opacity:1; }
+                    .sidebar-nav .nav-link.active { background:linear-gradient(135deg,#c0392b,#e74c3c) !important; color:#fff !important; font-weight:600; box-shadow:0 4px 10px rgba(192,57,43,.3); }
+                    .sidebar-nav .nav-link.active i { opacity:1; }
+                    .sidebar-section-label { font-size:.63rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#c5cdd6; padding:12px 12px 6px; }
+                </style>
+
+                <div class="sidebar-nav nav flex-column nav-pills" role="tablist">
 
                     <a class="nav-link <?= $activeTab === 'dashboard' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-dashboard">Dashboard</a>
+                        href="#v-pills-dashboard"><i class="fas fa-gauge-high"></i>Dashboard</a>
+
+                    <div class="sidebar-section-label">Store</div>
 
                     <a class="nav-link <?= $activeTab === 'product' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-product">Product Management</a>
+                        href="#v-pills-product"><i class="fas fa-box"></i>Product Management</a>
 
                     <a class="nav-link <?= $activeTab === 'inventory' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-inventory">Inventory</a>
+                        href="#v-pills-inventory"><i class="fas fa-warehouse"></i>Inventory</a>
 
                     <a class="nav-link <?= $activeTab === 'sales' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-sales">Sales (POS)</a>
+                        href="#v-pills-sales"><i class="fas fa-cash-register"></i>Sales (POS)</a>
 
                     <a class="nav-link <?= $activeTab === 'reports' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-reports">Reports</a>
+                        href="#v-pills-reports"><i class="fas fa-chart-bar"></i>Reports</a>
+
+                    <div class="sidebar-section-label">Admin</div>
 
                     <a class="nav-link <?= $activeTab === 'pendingaccount' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-pendingaccount">Pending Account</a>
+                        href="#v-pills-pendingaccount"><i class="fas fa-user-clock"></i>Pending Account</a>
 
                     <a class="nav-link <?= $activeTab === 'users' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-users">User Management</a>
+                        href="#v-pills-users"><i class="fas fa-users"></i>User Management</a>
 
                     <a class="nav-link <?= $activeTab === 'system' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-system">System Settings</a>
+                        href="#v-pills-system"><i class="fas fa-gear"></i>System Settings</a>
                 </div>
             </div>
         </div>

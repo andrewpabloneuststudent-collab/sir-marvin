@@ -2,7 +2,7 @@
 
 namespace Classes;
 
-require_once "../conn/Database.php";
+require_once "../conn/database.php";
 
 class UserManagement
 {

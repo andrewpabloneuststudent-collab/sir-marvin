@@ -14,7 +14,9 @@ class Product {
                     pc.category_name,
                     pc.has_vat, pc.senior_discount, pc.pwd_discount,
                     pcl.classification_name,
-                    COALESCE(SUM(i.quantity), 0) AS stock
+                    COALESCE(SUM(CASE WHEN i.expiry_date >= CURDATE() OR i.expiry_date IS NULL THEN i.quantity ELSE 0 END), 0) AS stock,
+                    MIN(CASE WHEN i.expiry_date >= CURDATE() THEN i.expiry_date ELSE NULL END) AS expiry_date,
+                    CASE WHEN MIN(i.expiry_date) < CURDATE() AND MAX(i.expiry_date) < CURDATE() THEN 1 ELSE 0 END AS is_expired
                 FROM products p
                 JOIN product_classifications pcl ON p.classification_id = pcl.id
                 LEFT JOIN product_categories pc ON p.category_id = pc.id
@@ -26,6 +28,7 @@ class Product {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
 
     // ✅ GET ALL CATEGORIES for filter buttons
     public function getCategories() {

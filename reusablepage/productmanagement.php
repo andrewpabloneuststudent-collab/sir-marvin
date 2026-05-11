@@ -16,25 +16,25 @@ if (isset($_GET['deleteProduct'])) {
     $id = (int) $_GET['deleteProduct'];
 
     if ($product->deleteProduct($id)) {
-        echo "<script>alert('Product deleted successfully'); window.location.href = window.location.href = 'dashboard.php?tab=product';</script>";
+        echo "<script>showNotif('Product deleted successfully', 'success'); setTimeout(()=>{ window.location.href='dashboard.php?tab=product'; },1500);</script>";
         exit;
     } else {
-        echo "<script>alert('" . $product->getResponse() . "');</script>";
+        echo "<script>showNotif('" . addslashes($product->getResponse()) . "', 'error');</script>";
     }
 }
 
 // UPDATE
 if ($product->updateProduct()) {
-    echo "<script>alert('Updated successfully'); window.location.href = window.location.href = 'dashboard.php?tab=product';</script>";
+    echo "<script>showNotif('Updated successfully', 'success'); setTimeout(()=>{ window.location.href='dashboard.php?tab=product'; },1500);</script>";
     exit;
 }
 
 if ($product->addProduct()) {
-    echo "<script>alert('Product added successfully'); window.location.href = window.location.href = 'dashboard.php?tab=product';</script>";
+    echo "<script>showNotif('Product added successfully', 'success'); setTimeout(()=>{ window.location.href='dashboard.php?tab=product'; },1500);</script>";
     exit;
 } else {
     if (!empty($_POST) && isset($_POST['addProduct'])) {
-        echo "<script>alert('" . $product->getResponse() . "');</script>";
+        echo "<script>showNotif('" . addslashes($product->getResponse()) . "', 'error');</script>";
     }
 }
 ?>
@@ -86,16 +86,16 @@ if ($product->addProduct()) {
                         <td><?= $prod['expiry_date'] ?? 'N/A' ?></td>
                         <td><?= $prod['barcode'] ?></td>
                         <td>
-                            <!-- EDIT -->
-                            <button class="btn btn-warning" data-bs-toggle="modal"
-                                data-bs-target="#editProduct<?= $prod['id'] ?>">
-                                Edit
-                            </button>
-                            <!-- DELETE -->
-                            <a href="?deleteProduct=<?= $prod['id'] ?>" class="btn btn-sm btn-danger"
-                                onclick="return confirm('Delete this product?')">
-                                Delete
-                            </a>
+                            <div class="action-btns">
+                                <button class="btn-action-edit" data-bs-toggle="modal"
+                                    data-bs-target="#editProduct<?= $prod['id'] ?>">
+                                    <i class="fas fa-pen"></i> Edit
+                                </button>
+                                <a href="?deleteProduct=<?= $prod['id'] ?>" class="btn-action-delete"
+                                    onclick="return confirm('Delete this product?')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -197,7 +197,7 @@ async function pmSaveCat(id, btn) {
         pwd_discount:    document.getElementById('pwd-'+id)?.checked     ? 1 : 0,
     };
     try {
-        const res  = await fetch('../function/category_settings.php', {
+        const res  = await fetch('../function/category_settings', {
             method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
         });
         const data = await res.json();
@@ -206,11 +206,11 @@ async function pmSaveCat(id, btn) {
             btn.className = 'btn btn-sm btn-success';
             setTimeout(() => { btn.innerHTML = origText; btn.className = 'btn btn-sm btn-primary'; btn.disabled = false; }, 1500);
         } else {
-            alert('Error: ' + data.error);
+            showNotif('Error: ' + data.error, 'error');
             btn.innerHTML = origText; btn.disabled = false;
         }
     } catch(e) {
-        alert('Network error');
+        showNotif('Network error. Please try again.', 'error');
         btn.innerHTML = origText; btn.disabled = false;
     }
 }
@@ -219,7 +219,7 @@ async function pmAddNewCategory(btn) {
     const input = document.getElementById('newCategoryName');
     const categoryName = input.value.trim();
     if (!categoryName) {
-        alert('Please enter a category name.');
+        showNotif('Please enter a category name.', 'warning');
         return;
     }
 
@@ -228,7 +228,7 @@ async function pmAddNewCategory(btn) {
     btn.disabled = true;
 
     try {
-        const res = await fetch('../function/category_settings.php', {
+        const res = await fetch('../function/category_settings', {
             method: 'POST',
             headers: {'Content-Type':'application/json'},
             body: JSON.stringify({ action: 'add_category', category_name: categoryName })
@@ -238,10 +238,10 @@ async function pmAddNewCategory(btn) {
             input.value = '';
             pmLoadCatSettings(); // Reload table
         } else {
-            alert('Error: ' + data.error);
+            showNotif('Error: ' + data.error, 'error');
         }
     } catch(e) {
-        alert('Network error');
+        showNotif('Network error. Please try again.', 'error');
     } finally {
         btn.innerHTML = origText;
         btn.disabled = false;
