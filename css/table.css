@@ -64,3 +64,20 @@
     font-size: 12px;
     padding: 0;        /* remove default bootstrap padding */
 }
+
+/* User management modals: stay still normally */
+.modal .modal-content {
+    transition: none;
+}
+
+/* Prevent user management view/edit buttons from shifting on hover/focus */
+.userstable .btn,
+.userstable .btn:hover,
+.userstable .btn:focus,
+.userstable .btn:active {
+    transform: none !important;
+    transition: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-width: 1px !important;
+}

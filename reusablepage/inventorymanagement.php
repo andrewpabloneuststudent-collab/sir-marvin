@@ -6,7 +6,7 @@ use Classes\ProductManagement;
 
 $product = new ProductManagement($db);
 
-// ✅ HANDLE UPDATE FIRST (NO OUTPUT BEFORE THIS)
+// ✅ HANDLE UPDATE FIRST (NO OUTPUT BEFORE THIS.)
 if ($product->updateStock()) {
     echo "<script>
     setTimeout(function() {

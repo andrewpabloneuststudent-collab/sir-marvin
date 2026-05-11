@@ -212,7 +212,7 @@ $allTransactions = $data['transactions'];
                 </div>
             </div>
 
-            <!-- DAILY SALES -->
+            <!-- DAILY SALES. -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header" style="background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);">
                     <i class="fas fa-calendar-alt"></i> Daily Sales Summary (Last 30 Days)

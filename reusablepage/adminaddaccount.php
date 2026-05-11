@@ -6,7 +6,7 @@ include("../conn/connection_links.php");
 
     <div class="card shadow-lg border-0">
         
-        <!-- HEADER -->
+        <!-- HEADER. -->
         <div class="card-header bg-primary text-white">
             <h4 class="mb-0">Add User</h4>
         </div>

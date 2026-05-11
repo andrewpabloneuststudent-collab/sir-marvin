@@ -164,7 +164,7 @@ class ProductManagement
         return $stmt->fetchAll();
     }
 
-    // 🔥 DELETE PRODUCT (SIMPLIFIED - CASCADE HANDLES INVENTORY)
+    // 🔥 DELETE PRODUCT (SIMPLIFIED - CASCADE HANDLES INVENTORY.)
     public function deleteProduct($productId)
     {
         if (!$productId) {

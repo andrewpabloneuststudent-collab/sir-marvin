@@ -1,3 +1,6 @@
+<?php foreach ($users as $u): ?>
+
+<!-- View User Modal -->
 <div class="modal fade" id="view<?= $u['id'] ?>" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -9,49 +12,123 @@
 
             <div class="modal-body">
 
-                <!-- BASIC INFO -->
-                <h6 class="mb-3">Basic Information</h6>
+                <!-- Basic Information -->
+                <h6 class="mb-3 text-secondary fw-bold">
+                    Basic Information
+                </h6>
+
                 <div class="row">
-                    <div class="col-md-4"><strong>Username:</strong> <?= $u['username'] ?></div>
-                    <div class="col-md-4"><strong>First Name:</strong> <?= htmlspecialchars($u['firstname']) ?></div>
-                    <div class="col-md-4"><strong>Middle Name:</strong> <?= htmlspecialchars($u['middlename']) ?></div>
-                    <div class="col-md-4 mt-2"><strong>Last Name:</strong> <?= htmlspecialchars($u['lastname']) ?></div>
-                    <div class="col-md-4 mt-2"><strong>Age:</strong> <?= $u['age'] ?></div>
-                    <div class="col-md-4 mt-2"><strong>Position:</strong> <?= htmlspecialchars($u['position']) ?></div>
+                    <div class="col-md-4 mb-2">
+                        <strong>Username:</strong><br>
+                        <?= $u['username'] ?>
+                    </div>
+
+                    <div class="col-md-4 mb-2">
+                        <strong>First Name:</strong><br>
+                        <?= $u['firstname'] ?>
+                    </div>
+
+                    <div class="col-md-4 mb-2">
+                        <strong>Middle Name:</strong><br>
+                        <?= $u['middlename'] ?>
+                    </div>
+
+                    <div class="col-md-4 mb-2">
+                        <strong>Last Name:</strong><br>
+                        <?= $u['lastname'] ?>
+                    </div>
+
+                    <div class="col-md-4 mb-2">
+                        <strong>Age:</strong><br>
+                        <?= $u['age'] ?>
+                    </div>
+
+                    <div class="col-md-4 mb-2">
+                        <strong>Position:</strong><br>
+                        <?= $u['position'] ?>
+                    </div>
                 </div>
 
-                <hr>
+                <hr class="my-4">
 
-                <!-- CONTACT -->
-                <h6 class="mb-3">Contact</h6>
+                <!-- Contact Information -->
+                <h6 class="mb-3 text-secondary fw-bold">
+                    Contact Information
+                </h6>
+
                 <div class="row">
-                    <div class="col-md-6"><strong>Email:</strong> <?= htmlspecialchars($u['email']) ?></div>
-                    <div class="col-md-6"><strong>Contact No:</strong> <?= htmlspecialchars($u['contactnumber']) ?></div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Email Address:</strong><br>
+                        <?= $u['email'] ?>
+                    </div>
+
+                    <div class="col-md-6 mb-2">
+                        <strong>Contact Number:</strong><br>
+                        <?= $u['contactnumber'] ?>
+                    </div>
                 </div>
 
-                <hr>
+                <hr class="my-4">
 
-                <!-- ADDRESS -->
-                <h6 class="mb-3">Address</h6>
+                <!-- Address Information -->
+                <h6 class="mb-3 text-secondary fw-bold">
+                    Address Information
+                </h6>
+
                 <div class="row">
-                    <div class="col-md-4"><strong>Street:</strong> <?= htmlspecialchars($u['street']) ?></div>
-                    <div class="col-md-4"><strong>Barangay:</strong> <?= htmlspecialchars($u['barangay']) ?></div>
-                    <div class="col-md-4"><strong>City:</strong> <?= htmlspecialchars($u['city']) ?></div>
-                    <div class="col-md-4 mt-2"><strong>Province:</strong> <?= htmlspecialchars($u['province']) ?></div>
-                    <div class="col-md-4 mt-2"><strong>Country:</strong> <?= htmlspecialchars($u['country']) ?></div>
+                    <div class="col-md-4 mb-2">
+                        <strong>Street:</strong><br>
+                        <?= $u['street'] ?>
+                    </div>
+
+                    <div class="col-md-4 mb-2">
+                        <strong>Barangay:</strong><br>
+                        <?= $u['barangay'] ?>
+                    </div>
+
+                    <div class="col-md-4 mb-2">
+                        <strong>City:</strong><br>
+                        <?= $u['city'] ?>
+                    </div>
+
+                    <div class="col-md-4 mb-2">
+                        <strong>Province:</strong><br>
+                        <?= $u['province'] ?>
+                    </div>
+
+                    <div class="col-md-4 mb-2">
+                        <strong>Country:</strong><br>
+                        <?= $u['country'] ?>
+                    </div>
                 </div>
 
-                <hr>
-                <h6 class="mb-3">Password</h6>
+                <hr class="my-4">
+
+                <!-- Security -->
+                <h6 class="mb-3 text-secondary fw-bold">
+                    Security
+                </h6>
+
                 <div class="row">
-                    <div class="col-md-4"><strong>Void PIN:</strong> <?= htmlspecialchars($u['void_password']) ?></div>
+                    <div class="col-md-4 mb-2">
+                        <strong>Void PIN:</strong><br>
+                        <?= $u['void_password'] ?>
+                    </div>
                 </div>
+
             </div>
 
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+                    Close
+                </button>
             </div>
 
         </div>
     </div>
 </div>
+
+<?php endforeach; ?>

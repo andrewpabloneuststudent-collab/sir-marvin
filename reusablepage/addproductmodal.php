@@ -74,7 +74,7 @@ $classifications = $product->getClassifications();
 
                     <hr class="my-4">
 
-                    <!-- PRICING SECTION -->
+                    <!-- PRICING SECTION .-->
                     <h6 class="mb-3 text-secondary fw-bold">Pricing & Stock</h6>
                     <div class="row">
                         <div class="col-md-4 mb-3">
@@ -119,7 +119,7 @@ $classifications = $product->getClassifications();
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" name="addProduct" class="btn btn-success">
                         <i class="fas fa-save"></i> Save Product
-                    </button>
+                    </button>   
                 </div>
             </form>
 

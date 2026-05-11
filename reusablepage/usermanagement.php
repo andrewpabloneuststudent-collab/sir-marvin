@@ -96,14 +96,15 @@ $users = $usersmanagement->getAllUsers();
 
                                 <td class="col-action text-center ">
 
+
                                     <!-- VIEW -->
-                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal"
+                                    <button class="btn btn-info" data-bs-toggle="modal"
                                         data-bs-target="#view<?= $u['id'] ?>">
                                         View
                                     </button>
 
                                     <!-- EDIT -->
-                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                    <button class="btn btn-success" data-bs-toggle="modal"
                                         data-bs-target="#edit<?= $u['id'] ?>">
                                         Edit
                                     </button>
@@ -120,9 +121,6 @@ $users = $usersmanagement->getAllUsers();
                                 </td>
                             </tr>
 
-                            <?php include 'editaccount.php'; ?>
-                            <?php include 'viewaccount.php'; ?>
-
                         <?php endforeach; ?>
                     </tbody>
 
@@ -133,6 +131,6 @@ $users = $usersmanagement->getAllUsers();
     </div>
 
 </div>
-
 <?php include 'addaccount.php'; ?>
-<script src="../js/usersmanagement.js"></script>
+<?php include 'viewaccount.php'; ?>
+<?php include 'editaccount.php'; ?>

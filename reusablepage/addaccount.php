@@ -37,7 +37,7 @@
 
                     <hr class="my-4">
 
-                    <!-- Personal Information Section -->
+                    <!-- Personal Information Section. -->
                     <h6 class="mb-3 text-secondary fw-bold">Personal Information</h6>
                     <div class="row">
                         <div class="col-md-4 mb-3">

@@ -95,7 +95,7 @@ public function pre_addUser()
         // Get the last inserted user id
         $pre_user_id = $this->con->lastInsertId();
 
-        // Insert into users_info table
+        // Insert into users_info table.
         $stmt = $this->con->prepare("INSERT INTO pre_approved_users_info (pre_user_id, firstname, middlename, lastname, age, street, barangay, city, province, country, email, contactnumber) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 

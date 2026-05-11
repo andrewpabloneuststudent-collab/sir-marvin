@@ -39,7 +39,7 @@ class UserManagement
         ];
     }
 
-    // 🔥 ADD USER (TRANSACTION SAFE)
+    // 🔥 ADD USER (TRANSACTION SAFE.)
    public function addUser(array $data): array
 {
     $d = $this->input($data);

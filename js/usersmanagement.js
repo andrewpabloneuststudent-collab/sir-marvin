@@ -16,9 +16,10 @@ $(function () {
             initDataTable(this);
         }
     });
-    
+
     // Focus search input on page load
     focusSearchInput();
+    initUserModals();
 
 });
 
