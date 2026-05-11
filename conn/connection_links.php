@@ -177,6 +177,11 @@
         box-shadow: 0 4px 10px rgba(192, 57, 43, .3) !important;
     }
 
+    .nav-link {
+        color: var(--pharm-text);
+        transition: all .2s;
+    }
+
     .nav-link:hover {
         color: var(--pharm-red) !important;
     }

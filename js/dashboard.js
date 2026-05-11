@@ -55,16 +55,7 @@
       datasets: [{
         label: 'Net Sales',
         data: salesData,
-        backgroundColor(ctx) {
-          const { chart } = ctx;
-          const { ctx: c, chartArea } = chart;
-          if (!chartArea) return 'rgba(192,57,43,0.85)';
-          if (gW !== chart.width || gH !== chart.height) {
-            cachedGrad = makeGradient(c, chartArea);
-            gW = chart.width; gH = chart.height;
-          }
-          return cachedGrad;
-        },
+        backgroundColor: 'rgba(192, 57, 43, 0.85)',
         hoverBackgroundColor: '#a93226',
         borderColor:   'transparent',
         borderWidth:    0,
