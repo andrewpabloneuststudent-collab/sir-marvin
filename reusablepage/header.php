@@ -1,4 +1,4 @@
-<nav style="background:#1a2535; border-bottom:none; box-shadow:0 2px 16px rgba(0,0,0,.25); padding:0 20px; height:56px; display:flex; align-items:center; position:sticky; top:0; z-index:1040;">
+<nav style="background:#1a2535; border-bottom:none; box-shadow:0 2px 16px rgba(0,0,0,.25); padding:0 20px; height:56px; display:flex; align-items:center; z-index:1040;">
 
     <!-- ☰ Mobile Toggle -->
     <button class="d-lg-none me-3" data-bs-toggle="offcanvas" data-bs-target="#sidebar"

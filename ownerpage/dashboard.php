@@ -43,8 +43,9 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                         border-right: 1px solid #f0f0f0;
                         min-height: 100vh;
                         padding: 16px 12px;
-                        box-shadow: 2px 0 8px rgba(0,0,0,.04);
+                        box-shadow: 2px 0 8px rgba(0, 0, 0, .04);
                     }
+
                     .sidebar-brand {
                         display: flex;
                         align-items: center;
@@ -53,13 +54,19 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                         border-bottom: 1px solid #f0f0f0;
                         margin-bottom: 16px;
                     }
+
                     .sidebar-brand-icon {
-                        width: 34px; height: 34px;
+                        width: 34px;
+                        height: 34px;
                         background: linear-gradient(135deg, #c0392b, #e74c3c);
                         border-radius: 10px;
-                        display: flex; align-items: center; justify-content: center;
-                        color: #fff; font-size: 1rem;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: #fff;
+                        font-size: 1rem;
                     }
+
                     .sidebar-brand-text {
                         font-size: .78rem;
                         font-weight: 800;
@@ -67,12 +74,14 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                         letter-spacing: -.3px;
                         line-height: 1.2;
                     }
+
                     .sidebar-brand-text small {
                         display: block;
                         font-weight: 400;
                         font-size: .68rem;
                         color: #94a3b8;
                     }
+
                     .sidebar-nav .nav-link {
                         color: #64748b;
                         font-size: .83rem;
@@ -86,24 +95,34 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                         transition: all .15s;
                         border: none;
                     }
+
                     .sidebar-nav .nav-link i {
                         width: 18px;
                         text-align: center;
                         font-size: .9rem;
                         opacity: .7;
                     }
+
                     .sidebar-nav .nav-link:hover {
                         background: #fff5f5;
                         color: #c0392b !important;
                     }
-                    .sidebar-nav .nav-link:hover i { opacity: 1; }
+
+                    .sidebar-nav .nav-link:hover i {
+                        opacity: 1;
+                    }
+
                     .sidebar-nav .nav-link.active {
                         background: linear-gradient(135deg, #c0392b, #e74c3c) !important;
                         color: #fff !important;
                         font-weight: 600;
-                        box-shadow: 0 4px 10px rgba(192,57,43,.3);
+                        box-shadow: 0 4px 10px rgba(192, 57, 43, .3);
                     }
-                    .sidebar-nav .nav-link.active i { opacity: 1; }
+
+                    .sidebar-nav .nav-link.active i {
+                        opacity: 1;
+                    }
+
                     .sidebar-section-label {
                         font-size: .63rem;
                         font-weight: 700;
@@ -148,29 +167,37 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
             </div>
         </div>
 
-        <div class="tab-content flex-grow-1 w-100" id="v-pills-tabContent" style="background-color: #f8fafc; min-height: 100vh; overflow: hidden;">
-            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'dashboard' ? 'show active' : '' ?>" id="v-pills-dashboard">
+        <div class="tab-content flex-grow-1 w-100" id="v-pills-tabContent"
+            style="background-color: #f8fafc; min-height: 100vh; overflow: hidden;">
+            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'dashboard' ? 'show active' : '' ?>"
+                id="v-pills-dashboard">
                 <?php include __DIR__ . "/../reusablepage/dashboard.php"; ?>
             </div>
-            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'product' ? 'show active' : '' ?>" id="v-pills-product">
+            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'product' ? 'show active' : '' ?>"
+                id="v-pills-product">
                 <?php include __DIR__ . "/../reusablepage/productmanagement.php"; ?>
             </div>
-            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'inventory' ? 'show active' : '' ?>" id="v-pills-inventory">
+            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'inventory' ? 'show active' : '' ?>"
+                id="v-pills-inventory">
                 <?php include __DIR__ . "/../reusablepage/inventorymanagement.php"; ?>
             </div>
-            <div class="tab-pane fade <?= $activeTab === 'sales' ? 'show active' : '' ?>" id="v-pills-sales" style="padding: 0; height: 100%; overflow: hidden;">
+            <div class="tab-pane fade <?= $activeTab === 'sales' ? 'show active' : '' ?>" id="v-pills-sales"
+                style="padding: 0; height: 100%; overflow: hidden;">
                 <?php include __DIR__ . "/../reusablepage/salespos.php"; ?>
             </div>
-            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'reports' ? 'show active' : '' ?>" id="v-pills-reports">
+            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'reports' ? 'show active' : '' ?>"
+                id="v-pills-reports">
                 <?php include __DIR__ . "/../reusablepage/reports.php"; ?>
             </div>
-            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'security' ? 'show active' : '' ?>" id="v-pills-security">
+            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'security' ? 'show active' : '' ?>"
+                id="v-pills-security">
                 <?php include __DIR__ . "/../reusablepage/userauthentication.php"; ?>
             </div>
             <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'users' ? 'show active' : '' ?>" id="v-pills-users">
                 <?php include __DIR__ . "/../reusablepage/usermanagement.php"; ?>
             </div>
-            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'system' ? 'show active' : '' ?>" id="v-pills-system">
+            <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'system' ? 'show active' : '' ?>"
+                id="v-pills-system">
                 <?php include __DIR__ . "/../reusablepage/systemsettings.php"; ?>
             </div>
         </div>

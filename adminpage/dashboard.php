@@ -50,7 +50,7 @@ if (!empty($error_msg)) {
 
 </head>
 
-<body class="d-flex flex-column m-0 p-0" style="min-height: 100vh;">
+<body class="m-0 p-0" style="height: 100vh; overflow: hidden; display: flex; flex-direction: column;">
    <?php include __DIR__ . "/../reusablepage/header.php"; ?>
 
 
@@ -65,7 +65,7 @@ if (!empty($error_msg)) {
 
             <div class="offcanvas-body p-0">
                 <style>
-                    .sidebar-nav { width:200px; min-width:200px; background:#fff; border-right:1px solid #f0f0f0; min-height:100vh; padding:16px 12px; box-shadow:2px 0 8px rgba(0,0,0,.04); }
+                    .sidebar-nav { width:200px; min-width:200px; background:#fff; border-right:1px solid #f0f0f0; height: 100%; overflow-y: auto; padding:16px 12px; box-shadow:2px 0 8px rgba(0,0,0,.04); }
                     .sidebar-nav .nav-link { color:#64748b; font-size:.83rem; font-weight:500; padding:9px 12px; border-radius:8px; margin-bottom:2px; display:flex; align-items:center; gap:10px; transition:all .15s; border:none; }
                     .sidebar-nav .nav-link i { width:18px; text-align:center; font-size:.9rem; opacity:.7; }
                     .sidebar-nav .nav-link:hover { background:#fff5f5; color:#c0392b !important; }
@@ -108,7 +108,7 @@ if (!empty($error_msg)) {
             </div>
         </div>
 
-        <div class="tab-content flex-grow-1 w-100" id="v-pills-tabContent" style="background-color: #f8fafc; min-height: 100vh; overflow: hidden;">
+        <div class="tab-content flex-grow-1 w-100" id="v-pills-tabContent" style="background-color: #f8fafc; height: 100%; overflow-y: auto; overflow-x: hidden;">
 
             <div class="tab-pane fade px-3 py-3 <?= $activeTab === 'dashboard' ? 'show active' : '' ?>" id="v-pills-dashboard">
                 <?php include __DIR__ . "/../reusablepage/dashboard.php"; ?>
