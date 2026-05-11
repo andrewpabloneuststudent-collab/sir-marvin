@@ -25,11 +25,6 @@
             </button>
 
             <ul class="dropdown-menu dropdown-menu-end shadow">
-                <li><a class="dropdown-item" href="#">Profile</a></li>
-                <li><a class="dropdown-item" href="#">Settings</a></li>
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
                 <li>
                     <a class="dropdown-item text-danger" href="../login_logout_page/logout.php">
                         Logout

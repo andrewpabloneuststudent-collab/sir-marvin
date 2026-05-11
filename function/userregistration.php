@@ -58,71 +58,75 @@ class UserRegistration
         $this->contactnumber = $_POST['contactnumber'];
     }
 
+public function pre_addUser()
+{
+    if (isset($_POST['pre_addUser'])) {
+        $this->getPost();
 
-    public function pre_addUser()
-    {
-        if (isset($_POST['pre_addUser'])) {
-            $this->getPost();
-
-            // Check if username already exists
-            $stmt = $this->con->prepare("SELECT id FROM users WHERE username = ?");
-            $stmt->execute([$this->username]);
-            if ($stmt->fetch()) {
-                $this->response = "Username already exists";
-                return false;
-            }
-
-            // Hash password
-            $hashedPassword = password_hash($this->password, PASSWORD_BCRYPT);
-
-            // Insert into users table
-            $stmt = $this->con->prepare("INSERT INTO pre_approved_users (username, password, position) VALUES (?, ?, ?)");
-            $stmtUser = $stmt->execute([
-                $this->username,
-                $hashedPassword,
-                $this->position
-            ]);
-
-            if (!$stmtUser) {
-                $this->response = "Failed to create user";
-                return false;
-            }
-
-            // Get the last inserted user id
-            $pre_user_id = $this->con->lastInsertId();
-
-            // Insert into users_info table
-            $stmt = $this->con->prepare("INSERT INTO pre_approved_users_info (pre_user_id, firstname, middlename, lastname, age, street, barangay, city, province, country, email, contactnumber) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-            $stmtInfo = $stmt->execute([
-                $pre_user_id,
-                $this->firstname,
-                $this->middlename,
-                $this->lastname,
-                $this->age,
-                $this->street,
-                $this->barangay,
-                $this->city,
-                $this->province,
-                $this->country,
-                $this->email,
-                $this->contactnumber
-            ]);
-
-            if ($stmtInfo) {
-                $this->response = "Success";
-                return true;
-            } else {
-                // Delete the user if info insert failed
-                $stmt = $this->con->prepare("DELETE FROM users WHERE id = ?");
-                $stmt->execute([$pre_user_id]);
-                $this->response = "Failed to add user information";
-                return false;
-            }
+        // Check if username already exists in both users and pre_approved_users tables
+        $stmt = $this->con->prepare("
+            SELECT id FROM users WHERE username = ?
+            UNION
+            SELECT id FROM pre_approved_users WHERE username = ?
+        ");
+        $stmt->execute([$this->username, $this->username]);
+        if ($stmt->fetch()) {
+            $this->response = "Username already exists";
+            echo "<script>alert('Username already exists. Please choose a different username.');</script>";
+            return false;
         }
-        return false;
+
+        // Hash password
+        $hashedPassword = password_hash($this->password, PASSWORD_BCRYPT);
+
+        // Insert into users table
+        $stmt = $this->con->prepare("INSERT INTO pre_approved_users (username, password, position) VALUES (?, ?, ?)");
+        $stmtUser = $stmt->execute([
+            $this->username,
+            $hashedPassword,
+            $this->position
+        ]);
+
+        if (!$stmtUser) {
+            $this->response = "Failed to create user";
+            return false;
+        }
+
+        // Get the last inserted user id
+        $pre_user_id = $this->con->lastInsertId();
+
+        // Insert into users_info table
+        $stmt = $this->con->prepare("INSERT INTO pre_approved_users_info (pre_user_id, firstname, middlename, lastname, age, street, barangay, city, province, country, email, contactnumber) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        $stmtInfo = $stmt->execute([
+            $pre_user_id,
+            $this->firstname,
+            $this->middlename,
+            $this->lastname,
+            $this->age,
+            $this->street,
+            $this->barangay,
+            $this->city,
+            $this->province,
+            $this->country,
+            $this->email,
+            $this->contactnumber
+        ]);
+
+        if ($stmtInfo) {
+            $this->response = "Success";
+            return true;
+        } else {
+            // Delete the user if info insert failed
+            $stmt = $this->con->prepare("DELETE FROM pre_approved_users WHERE id = ?");
+            $stmt->execute([$pre_user_id]);
+            $this->response = "Failed to add user information";
+            return false;
+        }
     }
+    return false;
+}
 
     public function getAllPreUsers($limit = 50)
     {
