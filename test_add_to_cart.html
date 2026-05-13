@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add to Cart Test</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/pos_wepos.css?v=1.3">
+    <style>
+        body { margin: 20px; font-family: Arial, sans-serif; }
+        .test-section { margin: 20px 0; padding: 20px; background: #f5f5f5; border-radius: 4px; }
+        .product-test { margin: 10px 0; padding: 10px; background: white; border: 1px solid #ddd; cursor: pointer; }
+        .product-test:hover { background: #f0f0f0; }
+        .console { background: black; color: #0f0; padding: 10px; margin: 10px 0; min-height: 100px; font-family: monospace; overflow-y: auto; max-height: 200px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<h1>Add to Cart Debugging Test</h1>
+
+<div class="test-section">
+    <h2>Test Product</h2>
+    <div class="wepos-product-card product-test"
+         data-id="1"
+         data-name="Test Medicine"
+         data-price="100.50"
+         data-net="89.75"
+         data-stock="25"
+         data-expired="0"
+         data-has-vat="1"
+         data-senior="0"
+         data-pwd="0"
+         onclick="weposAddToCart(this)">
+        <strong>Click to add to cart:</strong> Test Medicine - ₱100.50
+    </div>
+</div>
+
+<div class="test-section">
+    <h2>Cart Status</h2>
+    <button onclick="showCartStatus()">Show Cart Status</button>
+    <div id="cartStatus"></div>
+</div>
+
+<div class="test-section">
+    <h2>Cart Preview</h2>
+    <table class="wepos-cart-table" style="width:100%;">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Qty</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody id="weposCartBody">
+            <tr>
+                <td colspan="4" class="wepos-empty-cart">Cart is empty</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="test-section">
+    <h2>Console Output</h2>
+    <div class="console" id="consoleOutput"></div>
+</div>
+
+<script>
+    // Redirect console.log to page
+    const originalLog = console.log;
+    const consoleOutput = document.getElementById('consoleOutput');
+    
+    console.log = function(...args) {
+        originalLog.apply(console, args);
+        const msg = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+        const timestamp = new Date().toLocaleTimeString();
+        consoleOutput.innerHTML += `[${timestamp}] ${msg}\n`;
+        consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    };
+    
+    console.error = function(...args) {
+        console.log('[ERROR]', ...args);
+    };
+    
+    console.warn = function(...args) {
+        console.log('[WARN]', ...args);
+    };
+    
+    // Initialize cart variables
+    let weposCart = {};
+    
+    function showCartStatus() {
+        const status = document.getElementById('cartStatus');
+        status.innerHTML = `<pre>${JSON.stringify(weposCart, null, 2)}</pre>`;
+    }
+    
+    // Include cart functions here
+    function weposAddToCart(cardEl) {
+        console.log('weposAddToCart called', cardEl);
+        
+        if (!cardEl || !cardEl.dataset) {
+            console.error('Invalid element passed to weposAddToCart');
+            alert('Error: Could not add product to cart. Please refresh the page.');
+            return;
+        }
+        
+        const id = cardEl.dataset.id;
+        const stock = parseInt(cardEl.dataset.stock) || 0;
+        const isExpired = cardEl.dataset.expired === '1';
+        
+        if (!id) {
+            console.error('Product ID missing from data attributes', cardEl.dataset);
+            alert('Error: Product information is incomplete. Please refresh the page.');
+            return;
+        }
+        
+        console.log('Product ID:', id, 'Stock:', stock, 'Expired:', isExpired);
+
+        if (isExpired) {
+            alert('Cannot add expired product to cart!');
+            return;
+        }
+
+        if (stock <= 0) {
+            alert('Item is Out of Stock!');
+            return;
+        }
+
+        if (weposCart[id]) {
+            if (weposCart[id].qty >= stock) {
+                alert('Cannot add more. Only ' + stock + ' in stock.');
+                return;
+            }
+            weposCart[id].qty++;
+        } else {
+            const price = parseFloat(cardEl.dataset.price);
+            const net = parseFloat(cardEl.dataset.net || cardEl.dataset.price);
+            
+            if (isNaN(price) || price < 0) {
+                console.error('Invalid price:', cardEl.dataset.price, price);
+                alert('Error: Product price is invalid. Please refresh the page.');
+                return;
+            }
+            
+            weposCart[id] = {
+                id: id,
+                name: cardEl.dataset.name,
+                price: price,
+                net: isNaN(net) ? price : net,
+                qty: 1,
+                hasVat: cardEl.dataset.hasVat === '1',
+                senior: cardEl.dataset.senior === '1',
+                pwd: cardEl.dataset.pwd === '1',
+                stock: stock,
+                override: false,
+                overrideRate: 0,
+                overrideApprover: null
+            };
+            
+            console.log('Added product to cart:', weposCart[id]);
+        }
+
+        cardEl.classList.add('flash-add');
+        setTimeout(() => cardEl.classList.remove('flash-add'), 300);
+
+        weposUpdateCart();
+    }
+    
+    function weposUpdateCart() {
+        const tbody = document.getElementById('weposCartBody');
+        
+        if (!tbody) {
+            console.error('Cart body element (weposCartBody) not found in DOM');
+            return;
+        }
+        
+        const entries = Object.values(weposCart);
+
+        if (entries.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="wepos-empty-cart">Cart is empty</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        entries.forEach(item => {
+            const lineTotal = item.price * item.qty;
+            html += `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>₱${item.price.toFixed(2)}</td>
+                    <td>${item.qty}</td>
+                    <td>₱${lineTotal.toFixed(2)}</td>
+                </tr>`;
+        });
+
+        tbody.innerHTML = html;
+    }
+</script>
+
+</body>
+</html>

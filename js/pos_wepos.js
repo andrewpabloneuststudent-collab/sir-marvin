@@ -13,10 +13,16 @@ let weposCustomerId = null;       // tracks customer ID linking to senior_custom
 let weposLastReceiptData = null;  // stores last receipt data for printing
 
 document.addEventListener('DOMContentLoaded', () => {
-    weposSetupScanner();
-    weposSetupSearch();
-    weposSetupKeyboard();
-    weposUpdateCart();
+    try {
+        console.log('DOMContentLoaded event firing, initializing wePOS...');
+        weposSetupScanner();
+        weposSetupSearch();
+        weposSetupKeyboard();
+        weposUpdateCart();
+        console.log('wePOS initialization complete');
+    } catch (error) {
+        console.error('Error during wePOS initialization:', error);
+    }
 });
 
 // ═════ BARCODE SCANNER ═════
@@ -99,9 +105,27 @@ function weposFilterCat(category) {
 
 // ═════ CART LOGIC ═════
 function weposAddToCart(cardEl) {
+    console.log('weposAddToCart called with element:', cardEl?.dataset?.id);
+    
+    // Validate that cardEl is provided and is an element
+    if (!cardEl || !cardEl.dataset) {
+        console.error('Invalid element passed to weposAddToCart');
+        alert('Error: Could not add product to cart. Please refresh the page.');
+        return;
+    }
+    
     const id = cardEl.dataset.id;
     const stock = parseInt(cardEl.dataset.stock) || 0;
     const isExpired = cardEl.dataset.expired === '1';
+    
+    // Validate required data
+    if (!id) {
+        console.error('Product ID missing from data attributes', cardEl.dataset);
+        alert('Error: Product information is incomplete. Please refresh the page.');
+        return;
+    }
+    
+    console.log('Product ID:', id, 'Stock:', stock, 'Expired:', isExpired);
 
     if (isExpired) {
         alert('Cannot add expired product to cart!');
@@ -120,11 +144,21 @@ function weposAddToCart(cardEl) {
         }
         weposCart[id].qty++;
     } else {
+        const price = parseFloat(cardEl.dataset.price);
+        const net = parseFloat(cardEl.dataset.net || cardEl.dataset.price);
+        
+        // Validate prices
+        if (isNaN(price) || price < 0) {
+            console.error('Invalid price:', cardEl.dataset.price, 'parsed to:', price);
+            alert('Error: Product price is invalid. Please refresh the page.');
+            return;
+        }
+        
         weposCart[id] = {
             id: id,
             name: cardEl.dataset.name,
-            price: parseFloat(cardEl.dataset.price),
-            net: parseFloat(cardEl.dataset.net || cardEl.dataset.price),
+            price: price,
+            net: isNaN(net) ? price : net,
             qty: 1,
             // Category-based flags (auto-apply from DB)
             hasVat: cardEl.dataset.hasVat === '1',
@@ -136,6 +170,8 @@ function weposAddToCart(cardEl) {
             overrideRate: 0,
             overrideApprover: null
         };
+        
+        console.log('Added product to cart:', weposCart[id]);
     }
 
     // Visual feedback
@@ -146,20 +182,34 @@ function weposAddToCart(cardEl) {
 }
 
 function weposUpdateQty(id, delta) {
-    if (!weposCart[id]) return;
-    weposCart[id].qty += delta;
+    // Ensure id and delta are proper types
+    id = String(id).trim();
+    delta = Number(delta);
+    
+    if (!weposCart[id]) {
+        console.warn('Item not in cart:', id);
+        return;
+    }
+    
+    weposCart[id].qty = Number(weposCart[id].qty) + delta;
     if (weposCart[id].qty <= 0) {
         delete weposCart[id];
     } else if (weposCart[id].qty > weposCart[id].stock) {
         weposCart[id].qty = weposCart[id].stock;
         alert('Maximum stock reached');
     }
+    
     weposUpdateCart();
 }
 
 function weposRemoveItem(id) {
+    id = String(id).trim();
     const item = weposCart[id];
-    if (!item) return;
+    
+    if (!item) {
+        console.warn('Item not found in cart:', id);
+        return;
+    }
 
     // Intercept with void authorization modal
     pendingVoid = id;
@@ -255,6 +305,13 @@ function weposCalcItem(item, dRate, isVatExempt) {
 
 function weposUpdateCart() {
     const tbody = document.getElementById('weposCartBody');
+    
+    // Safety check - if cart body element doesn't exist, exit
+    if (!tbody) {
+        console.error('Cart body element (weposCartBody) not found in DOM');
+        return;
+    }
+    
     const entries = Object.values(weposCart);
 
     if (entries.length === 0) {
@@ -273,7 +330,19 @@ function weposUpdateCart() {
 
     // Get discount info
     const discountSelect = document.getElementById('weposDiscount');
+    if (!discountSelect) {
+        console.warn('Discount select element not found');
+        weposSetTotals(0, 0, 0, 0, 0, 0);
+        return;
+    }
+    
     const selOpt = discountSelect.options[discountSelect.selectedIndex];
+    if (!selOpt) {
+        console.warn('No discount option selected or available');
+        weposSetTotals(0, 0, 0, 0, 0, 0);
+        return;
+    }
+    
     const discountName = (selOpt?.text || '').toLowerCase();
     const isSpecialDiscount = discountName.includes('senior') || discountName.includes('pwd');
     
@@ -328,27 +397,39 @@ function weposUpdateCart() {
 }
 
 function weposSetTotals(sub, disc, dRate, vatExempt, vat, total) {
-    document.getElementById('calcSub').textContent = '₱' + sub.toFixed(2);
+    const calcSub = document.getElementById('calcSub');
+    if (calcSub) calcSub.textContent = '₱' + sub.toFixed(2);
+    else console.warn('Element calcSub not found');
     
     const rowDisc = document.getElementById('rowDiscount');
-    if (disc > 0) {
-        rowDisc.style.display = 'flex';
-        document.getElementById('calcDiscountLabel').textContent = (dRate * 100).toFixed(0) + '%';
-        document.getElementById('calcDiscount').textContent = '-₱' + disc.toFixed(2);
-    } else {
-        rowDisc.style.display = 'none';
+    if (rowDisc) {
+        if (disc > 0) {
+            rowDisc.style.display = 'flex';
+            const discLabel = document.getElementById('calcDiscountLabel');
+            const calcDisc = document.getElementById('calcDiscount');
+            if (discLabel) discLabel.textContent = (dRate * 100).toFixed(0) + '%';
+            if (calcDisc) calcDisc.textContent = '-₱' + disc.toFixed(2);
+        } else {
+            rowDisc.style.display = 'none';
+        }
     }
 
     const rowVatEx = document.getElementById('rowVatExempt');
-    if (vatExempt > 0) {
-        rowVatEx.style.display = 'flex';
-        document.getElementById('calcVatExempt').textContent = '-₱' + vatExempt.toFixed(2);
-    } else {
-        rowVatEx.style.display = 'none';
+    if (rowVatEx) {
+        if (vatExempt > 0) {
+            rowVatEx.style.display = 'flex';
+            const calcVatEx = document.getElementById('calcVatExempt');
+            if (calcVatEx) calcVatEx.textContent = '-₱' + vatExempt.toFixed(2);
+        } else {
+            rowVatEx.style.display = 'none';
+        }
     }
 
-    document.getElementById('calcTotal').textContent = '₱' + total.toFixed(2);
-    document.getElementById('btnTotalAmount').textContent = '₱' + total.toFixed(2);
+    const calcTotal = document.getElementById('calcTotal');
+    if (calcTotal) calcTotal.textContent = '₱' + total.toFixed(2);
+    
+    const btnAmount = document.getElementById('btnTotalAmount');
+    if (btnAmount) btnAmount.textContent = '₱' + total.toFixed(2);
 }
 
 // ═════ KEYBOARD SHORTCUTS ═════
