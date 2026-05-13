@@ -269,6 +269,7 @@ function weposCalcItem(item, dRate, isVatExempt) {
     let vatExempt = 0;
     let discount = 0;
     let vatAmount = 0;
+    let finalPrice = gross;
 
     // Manual override beats everything
     if (item.override && item.overrideRate > 0) {
@@ -279,28 +280,49 @@ function weposCalcItem(item, dRate, isVatExempt) {
             base = net;
         }
         discount = base * item.overrideRate;
-        return { gross, vatExempt, discount, vatAmount: 0, final: gross - vatExempt - discount };
+        finalPrice = gross - vatExempt - discount;
+        return { gross, vatExempt, discount, vatAmount: 0, final: finalPrice };
     }
 
-    // Auto discount from category flags or Senior/PWD verification
-    // When Senior/PWD is verified, apply 12% VAT exemption + 20% discount (RA 9994 & RA 10754)
-    const applyDiscount = (weposVerified && dRate === 0.20);
-
-    if (applyDiscount) {
-        // For Senior/PWD: 
-        // 1. Calculate 12% VAT exemption benefit
-        const grossWithVat = gross * 1.12;
-        vatExempt = grossWithVat - gross;  // The 12% VAT exemption benefit (e.g., ₱65.50 → ₱7.86)
-        
-        // 2. Apply 20% discount on the original net amount
-        discount = gross * dRate;  // e.g., ₱65.50 × 0.20 = ₱13.10
-        
+    // ═══ PHILIPPINE LAW APPLICATION ═══
+    // 1. Check if item is VAT-EXEMPT per category (Medicines, medical supplies, etc.)
+    if (!item.hasVat) {
+        // Item is VAT-exempt (e.g., medicines per BIR regulations)
+        // Price stays the same, no VAT added
+        vatExempt = 0;
         vatAmount = 0;
-    } else if (item.hasVat) {
-        vatAmount = gross - (gross / 1.12);
+        finalPrice = gross;
+    } else {
+        // Item HAS VAT (non-medicine items like food, beverages, etc.)
+        // VAT amount = original price × 12% / 112%
+        const netPrice = gross / 1.12;
+        vatAmount = gross - netPrice;
+        finalPrice = gross;  // Price already includes VAT
     }
 
-    return { gross: item.price * item.qty, vatExempt, discount, vatAmount, final: (item.price * item.qty) - vatExempt - discount };
+    // 2. Apply discount only to items eligible per category configuration
+    if (weposVerified && dRate > 0) {
+        // Check if item is eligible for discount based on category flags
+        const isSeniorEligible = item.senior === true;
+        const isPWDEligible = item.pwd === true;
+        const isEligible = isSeniorEligible || isPWDEligible;
+        
+        if (isEligible) {
+            // Apply discount rate on the base price (net of VAT if applicable)
+            // This respects the dRate parameter (could be 12%, 20%, or custom rate)
+            const basePrice = item.hasVat ? (gross / 1.12) : gross;
+            discount = basePrice * dRate;
+            finalPrice = gross - discount;
+        }
+    }
+
+    return { 
+        gross: item.price * item.qty, 
+        vatExempt: 0,  // No VAT exemption benefit shown (it's already in the price)
+        discount, 
+        vatAmount, 
+        final: finalPrice
+    };
 }
 
 function weposUpdateCart() {
@@ -391,7 +413,9 @@ function weposUpdateCart() {
 
     tbody.innerHTML = html;
 
-    const finalTotal = rawSubtotal - totalVatExemption - totalDiscount;
+    // ═══ CORRECT TOTAL CALCULATION ═══
+    // Final Total = Subtotal - Discounts + VAT
+    const finalTotal = rawSubtotal - totalDiscount + finalVat;
     weposSetTotals(rawSubtotal, totalDiscount, dRate, totalVatExemption, finalVat, finalTotal);
     document.getElementById('weposPayBtn').disabled = false;
 }
@@ -411,6 +435,17 @@ function weposSetTotals(sub, disc, dRate, vatExempt, vat, total) {
             if (calcDisc) calcDisc.textContent = '-₱' + disc.toFixed(2);
         } else {
             rowDisc.style.display = 'none';
+        }
+    }
+
+    const rowVat = document.getElementById('rowVat');
+    if (rowVat) {
+        if (vat > 0) {
+            rowVat.style.display = 'flex';
+            const calcVat = document.getElementById('calcVat');
+            if (calcVat) calcVat.textContent = '+₱' + vat.toFixed(2);
+        } else {
+            rowVat.style.display = 'none';
         }
     }
 
@@ -684,7 +719,9 @@ async function weposSubmitTransaction() {
 
     const discountSelect = document.getElementById('weposDiscount');
     const selOpt = discountSelect.options[discountSelect.selectedIndex];
-    const dRate = parseFloat(selOpt.dataset.rate) || 0;
+    const discountName = (selOpt?.text || '').toLowerCase();
+    const isSpecialDiscount = discountName.includes('senior') || discountName.includes('pwd');
+    const dRate = isSpecialDiscount && weposVerified ? 0.20 : (parseFloat(selOpt.dataset.rate) || 0);
     const isVatExempt = selOpt.dataset.exempt === '1';
 
     const items = Object.entries(weposCart).map(([id, item]) => ({
@@ -700,7 +737,7 @@ async function weposSubmitTransaction() {
         totalVatExempt  += c.vatExempt;
         finalVat        += c.vatAmount;
     });
-    const finalTotal = rawSubtotal - totalVatExempt - totalDiscount;
+    const finalTotal = rawSubtotal - totalDiscount + finalVat;
     const tendered   = parseFloat(document.getElementById('weposTendered')?.value) || finalTotal;
     const change     = currentPayMethod === 'Cash' ? tendered - finalTotal : 0;
 

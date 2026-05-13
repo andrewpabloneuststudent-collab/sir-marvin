@@ -171,6 +171,10 @@ $isManager = in_array($userRole, ['owner', 'admin']);
                     <span>Discount (<span id="calcDiscountLabel">0%</span>)</span>
                     <span id="calcDiscount">-₱0.00</span>
                 </div>
+                <div class="wepos-calc-row text-muted" id="rowVat" style="display:none;">
+                    <span>VAT (12%)</span>
+                    <span id="calcVat">+₱0.00</span>
+                </div>
                 <div class="wepos-calc-row text-muted" id="rowVatExempt" style="display:none;">
                     <span>VAT Exemption</span>
                     <span id="calcVatExempt">-₱0.00</span>
