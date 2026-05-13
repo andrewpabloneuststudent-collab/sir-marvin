@@ -52,9 +52,11 @@ $isManager = in_array($userRole, ['owner', 'admin']);
                     <?php 
                         $stock = (int)($row['stock'] ?? 0);
                         $isOut = $stock <= 0;
-                       $image = !empty($row['imageproduct']) ? "../img/" . $row['imageproduct'] : "";
+                        $expiryDate = $row['earliest_expiry_date'] ?? null;
+                        $isExpired = ($expiryDate && strtotime($expiryDate) < strtotime('today')) ? true : false;
+                        $image = !empty($row['imageproduct']) ? "../img/" . $row['imageproduct'] : "";
                     ?>
-                    <div class="wepos-product-card <?= $isOut ? 'out-of-stock' : '' ?>"
+                    <div class="wepos-product-card <?= $isOut ? 'out-of-stock' : '' ?><?= $isExpired ? ' expired' : '' ?>"
                          data-id="<?= $row['id'] ?>"
                          data-name="<?= htmlspecialchars($row['product_name']) ?>"
                          data-price="<?= $row['total_price'] ?>"
@@ -65,6 +67,7 @@ $isManager = in_array($userRole, ['owner', 'admin']);
                          data-senior="<?= (int)($row['senior_discount'] ?? 0) ?>"
                          data-pwd="<?= (int)($row['pwd_discount'] ?? 0) ?>"
                          data-stock="<?= $stock ?>"
+                         data-expired="<?= $isExpired ? '1' : '0' ?>"
                          onclick="weposAddToCart(this)">
                         
                         <div class="wepos-card-img">
@@ -74,8 +77,11 @@ $isManager = in_array($userRole, ['owner', 'admin']);
                                 <i class="fas fa-box" style="font-size: 2rem; color: #cbd5e1;"></i>
                             <?php endif; ?>
                             
+                            <!-- Expired Indicator -->
+                            <?php if ($isExpired): ?>
+                                <span class="wepos-stock-badge expired">EXPIRED</span>
                             <!-- Stock Indicator -->
-                            <?php if ($isOut): ?>
+                            <?php elseif ($isOut): ?>
                                 <span class="wepos-stock-badge empty">Out of Stock</span>
                             <?php else: ?>
                                 <span class="wepos-stock-badge <?= $stock <= 10 ? 'low' : '' ?>"><?= $stock ?> in stock</span>

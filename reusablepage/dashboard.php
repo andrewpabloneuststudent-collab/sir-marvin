@@ -9,8 +9,20 @@ $dashboardManager = new DashboardManager($db);
 
 $totalSalesToday   = $dashboardManager->getTotalSalesToday();
 $totalSalesMonth   = $dashboardManager->getTotalSalesMonth();
+$totalSalesYear    = $dashboardManager->getTotalSalesYear();
+$realRevenueToday  = $dashboardManager->getRealRevenueToday();
+$realRevenueMonth  = $dashboardManager->getRealRevenueMonth();
+$realRevenueYear   = $dashboardManager->getRealRevenueYear();
 $transactionsToday = $dashboardManager->getTransactionCountToday();
 $totalProducts     = $dashboardManager->getTotalProducts();
+$totalDiscountToday = $dashboardManager->getTotalDiscountToday();
+$totalDiscountMonth = $dashboardManager->getTotalDiscountMonth();
+$totalVatExemptionToday = $dashboardManager->getTotalVatExemptionToday();
+$totalVatExemptionMonth = $dashboardManager->getTotalVatExemptionMonth();
+$totalTransactionsAllTime = $dashboardManager->getTotalTransactionsAllTime();
+$averageTransactionValue = $dashboardManager->getAverageTransactionValue();
+$totalDiscountAllTime = $dashboardManager->getTotalDiscountAllTime();
+$totalVatExemptionAllTime = $dashboardManager->getTotalVatExemptionAllTime();
 
 $recentTransactions  = $dashboardManager->getRecentTransactions(5);
 $topProducts         = $dashboardManager->getTopSellingProducts(5);
@@ -64,6 +76,46 @@ date_default_timezone_set('Asia/Manila');
     </div>
     <div class="col-6 col-xl-3">
       <div class="stat-card">
+        <div class="stat-icon lime"><i class="fas fa-chart-bar"></i></div>
+        <div>
+          <div class="stat-label">Yearly Sales</div>
+          <div class="stat-value">₱<?php echo number_format($totalSalesYear, 2); ?></div>
+          <div class="stat-sub"><?php echo date('Y'); ?></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-icon teal"><i class="fas fa-money-bill-trend-up"></i></div>
+        <div>
+          <div class="stat-label">Real Revenue Today</div>
+          <div class="stat-value">₱<?php echo number_format($realRevenueToday, 2); ?></div>
+          <div class="stat-sub"><?php echo date('F j, Y'); ?></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-icon indigo"><i class="fas fa-chart-area"></i></div>
+        <div>
+          <div class="stat-label">Real Revenue Month</div>
+          <div class="stat-value">₱<?php echo number_format($realRevenueMonth, 2); ?></div>
+          <div class="stat-sub"><?php echo date('F Y'); ?></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-icon rose"><i class="fas fa-trophy"></i></div>
+        <div>
+          <div class="stat-label">Real Revenue Year</div>
+          <div class="stat-value">₱<?php echo number_format($realRevenueYear, 2); ?></div>
+          <div class="stat-sub"><?php echo date('Y'); ?></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="stat-card">
         <div class="stat-icon cyan"><i class="fas fa-receipt"></i></div>
         <div>
           <div class="stat-label">Transactions</div>
@@ -79,6 +131,46 @@ date_default_timezone_set('Asia/Manila');
           <div class="stat-label">Total Products</div>
           <div class="stat-value"><?php echo $totalProducts; ?></div>
           <div class="stat-sub">In inventory</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-tag"></i></div>
+        <div>
+          <div class="stat-label">Discount Total</div>
+          <div class="stat-value">₱<?php echo number_format($totalDiscountToday, 2); ?></div>
+          <div class="stat-sub">Month: ₱<?php echo number_format($totalDiscountMonth, 2); ?></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-icon orange"><i class="fas fa-star"></i></div>
+        <div>
+          <div class="stat-label">VAT Exemption</div>
+          <div class="stat-value">₱<?php echo number_format($totalVatExemptionToday, 2); ?></div>
+          <div class="stat-sub">Month: ₱<?php echo number_format($totalVatExemptionMonth, 2); ?></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-icon secondary"><i class="fas fa-receipt"></i></div>
+        <div>
+          <div class="stat-label">Total Transactions</div>
+          <div class="stat-value"><?php echo number_format($totalTransactionsAllTime); ?></div>
+          <div class="stat-sub">All-time</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-icon info"><i class="fas fa-chart-bar"></i></div>
+        <div>
+          <div class="stat-label">Avg Per Transaction</div>
+          <div class="stat-value">₱<?php echo number_format($averageTransactionValue, 2); ?></div>
+          <div class="stat-sub">Average value</div>
         </div>
       </div>
     </div>
@@ -120,6 +212,8 @@ date_default_timezone_set('Asia/Manila');
                   <th>Ref ID</th>
                   <th>Date / Time</th>
                   <th>Customer</th>
+                  <th>Discount</th>
+                  <th>VAT Exempt</th>
                   <th>Total Amount</th>
                 </tr>
               </thead>
@@ -129,7 +223,9 @@ date_default_timezone_set('Asia/Manila');
                     <td class="ref-id">#<?php echo str_pad($tx['id'], 6, '0', STR_PAD_LEFT); ?></td>
                     <td><?php echo date('M d, H:i', strtotime($tx['created_at'])); ?></td>
                     <td><?php echo htmlspecialchars($tx['customer_name'] ?? 'Guest'); ?></td>
-                    <td class="amount-pos">₱<?php echo number_format($tx['total_amount'], 2); ?></td>
+                    <td class="amount-neg">₱<?php echo number_format($tx['discount_total'] ?? 0, 2); ?></td>
+                    <td class="amount-neg">₱<?php echo number_format($tx['total_vat_exemption'] ?? 0, 2); ?></td>
+                    <td class="amount-pos"><strong>₱<?php echo number_format($tx['total_amount'], 2); ?></strong></td>
                   </tr>
                 <?php endforeach; ?>
               </tbody>

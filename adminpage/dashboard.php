@@ -41,7 +41,7 @@ if (isset($_GET['added'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admiin Dashboard</title>
-
+    <?php require_once __DIR__ . "/../conn/connection_links.php"; ?>
 </head>
 
 <body class="d-flex flex-column m-0 p-0" style="min-height: 100vh;">
@@ -61,28 +61,28 @@ if (isset($_GET['added'])) {
                 <div class="nav flex-column nav-pills me-3" role="tablist">
 
                     <a class="nav-link <?= $activeTab === 'dashboard' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-dashboard">Dashboard</a>
+                        href="#v-pills-dashboard"><i class="fas fa-chart-line me-2"></i>Dashboard</a>
 
                     <a class="nav-link <?= $activeTab === 'product' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-product">Product Management</a>
+                        href="#v-pills-product"><i class="fas fa-box me-2"></i>Product Management</a>
 
                     <a class="nav-link <?= $activeTab === 'inventory' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-inventory">Inventory</a>
+                        href="#v-pills-inventory"><i class="fas fa-warehouse me-2"></i>Inventory</a>
 
                     <a class="nav-link <?= $activeTab === 'sales' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-sales">Sales (POS)</a>
+                        href="#v-pills-sales"><i class="fas fa-shopping-cart me-2"></i>Sales (POS)</a>
 
                     <a class="nav-link <?= $activeTab === 'reports' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-reports">Reports</a>
+                        href="#v-pills-reports"><i class="fas fa-file-alt me-2"></i>Reports</a>
 
                     <a class="nav-link <?= $activeTab === 'pendingaccount' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-pendingaccount">Pending Account</a>
+                        href="#v-pills-pendingaccount"><i class="fas fa-hourglass-half me-2"></i>Pending Account</a>
 
                     <a class="nav-link <?= $activeTab === 'users' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-users">User Management</a>
+                        href="#v-pills-users"><i class="fas fa-users me-2"></i>User Management</a>
 
                     <a class="nav-link <?= $activeTab === 'system' ? 'active' : '' ?>" data-bs-toggle="pill"
-                        href="#v-pills-system">System Settings</a>
+                        href="#v-pills-system"><i class="fas fa-cog me-2"></i>System Settings</a>
                 </div>
             </div>
         </div>

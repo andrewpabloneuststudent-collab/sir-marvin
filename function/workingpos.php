@@ -14,9 +14,10 @@ class Product {
                     pc.category_name,
                     pc.has_vat, pc.senior_discount, pc.pwd_discount,
                     pcl.classification_name,
-                    COALESCE(SUM(i.quantity), 0) AS stock
+                    COALESCE(SUM(i.quantity), 0) AS stock,
+                    MIN(i.expiry_date) AS earliest_expiry_date
                 FROM products p
-                JOIN product_classifications pcl ON p.classification_id = pcl.id
+                LEFT JOIN product_classifications pcl ON p.classification_id = pcl.id
                 LEFT JOIN product_categories pc ON p.category_id = pc.id
                 LEFT JOIN inventory i ON p.id = i.product_id
                 GROUP BY p.id
@@ -44,7 +45,7 @@ class Product {
     }
 
     // ✅ PROCESS TRANSACTION
-    public function processTransaction($userId, $cartItems, $discountId, $customerName, $customerId) {
+    public function processTransaction($userId, $cartItems, $discountId, $customerName, $customerId, $discountTotal = 0, $totalVatExemption = 0, $customerType = null) {
         try {
             $this->conn->beginTransaction();
 
@@ -54,9 +55,9 @@ class Product {
                 $totalAmount += $item['price'] * $item['qty'];
             }
 
-            // Insert transaction
-            $stmt = $this->conn->prepare("INSERT INTO transactions (user_id, discount_id, customer_name, customer_id, total_amount) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$userId, $discountId ?: null, $customerName ?: null, $customerId ?: null, $totalAmount]);
+            // Insert transaction with discount_total, total_vat_exemption, and customer_type
+            $stmt = $this->conn->prepare("INSERT INTO transactions (user_id, discount_id, customer_name, customer_id, total_amount, discount_total, total_vat_exemption, customer_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$userId, $discountId ?: null, $customerName ?: null, $customerId ?: null, $totalAmount, $discountTotal, $totalVatExemption, $customerType]);
             $transactionId = $this->conn->lastInsertId();
 
             // Insert transaction items
@@ -77,4 +78,24 @@ class Product {
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
+}
+
+// ✅ API ENDPOINT: Get products for inventory refresh
+if (isset($_GET['action']) && $_GET['action'] === 'getProducts') {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    
+    require_once __DIR__ . '/../conn/database.php';
+    
+    header('Content-Type: application/json');
+    
+    try {
+        $product = new Product($db);
+        $products = $product->getProducts();
+        echo json_encode($products);
+    } catch (Exception $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+    exit;
 }

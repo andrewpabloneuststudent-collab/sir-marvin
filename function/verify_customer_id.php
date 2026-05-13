@@ -54,7 +54,7 @@ try {
 
     if ($existing) {
         // Already on record — no need to redirect
-        echo json_encode(['exists' => true]);
+        echo json_encode(['exists' => true, 'customer_id' => $existing['id']]);
         exit;
     }
 

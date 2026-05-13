@@ -4,8 +4,12 @@ let barcodeTimer = null;
 let currentPayMethod = 'Cash';
 let pendingOverride = null;
 let pendingVoid = null;           // stores cart item id pending void auth
+let pendingClearCart = false;     // tracks if void auth is for clearing entire cart
 let pendingDiscountIndex = null;  // stores previous discount index if user cancels verify
 let weposVerified = false;        // tracks if Senior/PWD customer has been verified this session
+let weposCustomerType = null;     // tracks customer type: 'senior', 'pwd', or null for regular
+let weposCustomerName = null;     // tracks customer name for senior/pwd customers
+let weposCustomerId = null;       // tracks customer ID linking to senior_customers/pwd_customers table
 let weposLastReceiptData = null;  // stores last receipt data for printing
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -45,7 +49,7 @@ function weposSetupScanner() {
 }
 
 function weposFindAndAdd(code) {
-    const cards = document.querySelectorAll('.wepos-product-card:not(.out-of-stock)');
+    const cards = document.querySelectorAll('.wepos-product-card:not(.out-of-stock):not(.expired)');
     for (const card of cards) {
         if (card.dataset.barcode === code) {
             weposAddToCart(card);
@@ -97,6 +101,12 @@ function weposFilterCat(category) {
 function weposAddToCart(cardEl) {
     const id = cardEl.dataset.id;
     const stock = parseInt(cardEl.dataset.stock) || 0;
+    const isExpired = cardEl.dataset.expired === '1';
+
+    if (isExpired) {
+        alert('Cannot add expired product to cart!');
+        return;
+    }
 
     if (stock <= 0) {
         alert('Item is Out of Stock!');
@@ -168,12 +178,39 @@ function weposRemoveItem(id) {
 
 function weposClearCart() {
     if (Object.keys(weposCart).length === 0) return;
-    if (confirm('Clear entire cart?')) {
-        weposCart = {};
-        document.getElementById('weposDiscount').selectedIndex = 0;
-        document.getElementById('weposCustomer').value = '';
-        weposUpdateCart();
+    
+    // Show void auth modal for clearing entire cart
+    pendingClearCart = true;
+    const cartItems = Object.values(weposCart);
+    const cartTotal = cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const itemCount = cartItems.length;
+    
+    document.getElementById('voidItemPreview').innerHTML =
+        `<strong><i class="fas fa-exclamation-triangle" style="color: #dc2626; margin-right: 8px;"></i>Clear Entire Cart</strong><br><br>` +
+        `<small>${itemCount} item(s) • Total: &#8369;${cartTotal.toFixed(2)}</small>`;
+    document.getElementById('voidAuthPin').value = '';
+    document.getElementById('voidAuthError').style.display = 'none';
+    
+    const btn = document.getElementById('voidAuthBtn');
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-trash-alt"></i> Clear Cart';
     }
+    
+    // Update modal title
+    const modalHead = document.querySelector('#voidAuthModal .wepos-modal-head h5');
+    if (modalHead) {
+        modalHead.innerHTML = '<i class="fas fa-trash-alt"></i> Clear Cart Authorization';
+    }
+    
+    // Update modal instructions
+    const instructions = document.querySelector('#voidAuthModal .wepos-modal-body p');
+    if (instructions) {
+        instructions.textContent = 'Please enter the 7-digit Manager Void PIN to clear the entire cart.';
+    }
+    
+    document.getElementById('voidAuthModal').style.display = 'flex';
+    setTimeout(() => document.getElementById('voidAuthPin')?.focus(), 100);
 }
 
 // ═════ MATH & DISCOUNT CALCULATION ═════
@@ -195,17 +232,19 @@ function weposCalcItem(item, dRate, isVatExempt) {
         return { gross, vatExempt, discount, vatAmount: 0, final: gross - vatExempt - discount };
     }
 
-    // Auto discount from category flags
-    const isSenior = isVatExempt && item.senior;
-    const isPwd = isVatExempt && item.pwd;
+    // Auto discount from category flags or Senior/PWD verification
+    // When Senior/PWD is verified, apply 12% VAT exemption + 20% discount (RA 9994 & RA 10754)
+    const applyDiscount = (weposVerified && dRate === 0.20);
 
-    if (isSenior || isPwd) {
-        if (item.hasVat) {
-            const net = gross / 1.12;
-            vatExempt = gross - net;
-            gross = net;
-        }
-        discount = gross * dRate;
+    if (applyDiscount) {
+        // For Senior/PWD: 
+        // 1. Calculate 12% VAT exemption benefit
+        const grossWithVat = gross * 1.12;
+        vatExempt = grossWithVat - gross;  // The 12% VAT exemption benefit (e.g., ₱65.50 → ₱7.86)
+        
+        // 2. Apply 20% discount on the original net amount
+        discount = gross * dRate;  // e.g., ₱65.50 × 0.20 = ₱13.10
+        
         vatAmount = 0;
     } else if (item.hasVat) {
         vatAmount = gross - (gross / 1.12);
@@ -227,7 +266,7 @@ function weposUpdateCart() {
                     <small>Scan barcode or click products to add</small>
                 </td>
             </tr>`;
-        weposSetTotals(0, 0, 0, 0, 0);
+        weposSetTotals(0, 0, 0, 0, 0, 0);
         document.getElementById('weposPayBtn').disabled = true;
         return;
     }
@@ -235,7 +274,11 @@ function weposUpdateCart() {
     // Get discount info
     const discountSelect = document.getElementById('weposDiscount');
     const selOpt = discountSelect.options[discountSelect.selectedIndex];
-    const dRate = parseFloat(selOpt.dataset.rate) || 0;
+    const discountName = (selOpt?.text || '').toLowerCase();
+    const isSpecialDiscount = discountName.includes('senior') || discountName.includes('pwd');
+    
+    // For Senior/PWD: use 20% if verified (RA 9994 & RA 10754), otherwise use database rate
+    const dRate = isSpecialDiscount && weposVerified ? 0.20 : (parseFloat(selOpt.dataset.rate) || 0);
     const isVatExempt = selOpt.dataset.exempt === '1';
 
     let html = '';
@@ -587,7 +630,11 @@ async function weposSubmitTransaction() {
             body: JSON.stringify({
                 items: items,
                 discount_id: discountSelect.value,
-                customer_name: 'Walk-in'
+                customer_name: weposCustomerName || 'Walk-in',
+                customer_id: weposCustomerId,
+                customer_type: weposCustomerType,
+                discount_total: totalDiscount,
+                total_vat_exemption: totalVatExempt
             })
         });
         
@@ -621,6 +668,7 @@ async function weposSubmitTransaction() {
             // Reset state
             weposCart = {};
             weposVerified = false;
+            weposCustomerType = null;
         } else {
             alert('Payment Error: ' + result.error);
             btn.disabled = false;
@@ -695,7 +743,62 @@ function weposShowReceipt(data) {
 
 function weposCloseReceipt() {
     document.getElementById('weposReceiptModal').style.display = 'none';
-    location.reload();
+    // Clear cart and reset totals instead of reloading
+    weposCart = {};
+    weposVerified = false;
+    weposCustomerType = null;
+    weposCustomerName = null;
+    weposCustomerId = null;
+    weposUpdateCart();
+    // Refresh inventory from server
+    weposRefreshInventory();
+    // Focus on search for next transaction
+    setTimeout(() => document.getElementById('weposSearch')?.focus(), 100);
+}
+
+// ═════ REFRESH INVENTORY ═════
+function weposRefreshInventory() {
+    fetch('../function/workingpos.php?action=getProducts', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(products => {
+        if (!products || !Array.isArray(products)) return;
+        
+        // Update each product card with new inventory
+        products.forEach(newProduct => {
+            const card = document.querySelector(`.wepos-product-card[data-id="${newProduct.id}"]`);
+            if (!card) return;
+            
+            const stock = parseInt(newProduct.stock || 0);
+            const isExpired = newProduct.earliest_expiry_date && new Date(newProduct.earliest_expiry_date) < new Date();
+            
+            // Update classes
+            card.classList.toggle('out-of-stock', stock <= 0);
+            card.classList.toggle('expired', isExpired);
+            
+            // Update stock badge
+            const badge = card.querySelector('.wepos-stock-badge');
+            if (badge) {
+                if (isExpired) {
+                    badge.textContent = 'EXPIRED';
+                    badge.className = 'wepos-stock-badge expired';
+                } else if (stock <= 0) {
+                    badge.textContent = 'Out of Stock';
+                    badge.className = 'wepos-stock-badge empty';
+                } else {
+                    badge.textContent = stock + ' in stock';
+                    badge.className = 'wepos-stock-badge' + (stock <= 10 ? ' low' : '');
+                }
+            }
+            
+            // Update data attributes
+            card.setAttribute('data-stock', stock);
+            card.setAttribute('data-expired', isExpired ? '1' : '0');
+        });
+    })
+    .catch(err => console.log('Inventory refresh:', err));
 }
 
 function weposPrintReceipt() {
@@ -723,6 +826,9 @@ function weposOnDiscountChange(selectEl) {
 
     // Reset verification whenever discount changes
     weposVerified = false;
+    weposCustomerType = null;
+    weposCustomerName = null;
+    weposCustomerId = null;
 
     if (isSenior || isPwd) {
         // Save previous index so we can restore on cancel
@@ -797,6 +903,9 @@ async function weposSubmitVerifyId() {
         } else {
             // Exists — apply discount and close modal
             weposVerified = true;
+            weposCustomerType = type; // Store the customer type ('senior' or 'pwd')
+            weposCustomerName = name; // Store the customer name
+            weposCustomerId = result.customer_id; // Store the customer ID
             document.getElementById('verifyIdModal').style.display = 'none';
             weposUpdateCart();
             
@@ -840,6 +949,9 @@ async function weposApproveVerify() {
         
         if (result.success) {
             weposVerified = true;
+            weposCustomerType = type; // Store the customer type ('senior' or 'pwd')
+            weposCustomerName = name; // Store the customer name
+            weposCustomerId = result.customer_id; // Store the customer ID
             document.getElementById('verifyIdModal').style.display = 'none';
             weposUpdateCart();
         } else {
@@ -855,6 +967,7 @@ async function weposApproveVerify() {
 // ═════ VOID AUTH MODAL (CART ITEM REMOVE) ═════
 function weposCancelVoidAuth() {
     pendingVoid = null;
+    pendingClearCart = false;
     document.getElementById('voidAuthModal').style.display = 'none';
 }
 
@@ -888,11 +1001,28 @@ async function weposSubmitVoidAuth() {
             return;
         }
 
-        // Authorized — remove the item
-        if (pendingVoid && weposCart[pendingVoid]) {
+        // Authorized — remove the item or clear cart
+        if (pendingClearCart) {
+            // Clear all cart items
+            for (let key in weposCart) {
+                delete weposCart[key];
+            }
+            // Reset verification state
+            weposVerified = false;
+            weposCustomerType = null;
+            weposCustomerName = null;
+            weposCustomerId = null;
+            // Reset UI elements
+            const discountSel = document.getElementById('weposDiscount');
+            if (discountSel) discountSel.selectedIndex = 0;
+            const customerInput = document.getElementById('weposCustomer');
+            if (customerInput) customerInput.value = '';
+            pendingClearCart = false;
+        } else if (pendingVoid && weposCart[pendingVoid]) {
             delete weposCart[pendingVoid];
+            pendingVoid = null;
         }
-        pendingVoid = null;
+        
         document.getElementById('voidAuthModal').style.display = 'none';
         weposUpdateCart();
 
@@ -902,6 +1032,7 @@ async function weposSubmitVoidAuth() {
     } finally {
         // Always reset button so it doesn't get stuck
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-trash"></i> Confirm Remove';
+        const buttonText = pendingClearCart ? '<i class="fas fa-trash-alt"></i> Clear Cart' : '<i class="fas fa-trash"></i> Confirm Remove';
+        btn.innerHTML = buttonText;
     }
 }

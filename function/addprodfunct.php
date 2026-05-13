@@ -11,7 +11,6 @@ class ProductManagement
     public string $product_name;
     public string $barcode;
     public int $category_id;
-    public int $classification_id;
     public string $unit;
     public float $net_price;
     public float $total_price;
@@ -33,7 +32,6 @@ class ProductManagement
             $this->product_name = $_POST['product_name'] ?? '';
             $this->barcode = $_POST['barcode'] ?? '';
             $this->category_id = (int) ($_POST['category_id'] ?? 0);
-            $this->classification_id = (int) ($_POST['classification_id'] ?? 0);
             $this->unit = $_POST['unit'] ?? '';
             $this->net_price = (float) ($_POST['net_price'] ?? 0);
             $this->total_price = (float) ($_POST['total_price'] ?? 0);
@@ -95,15 +93,14 @@ class ProductManagement
             // ➕ INSERT PRODUCT
             $stmt = $this->con->prepare("
                 INSERT INTO products 
-                (product_name, barcode, category_id, classification_id, unit, net_price, total_price, imageproduct)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (product_name, barcode, category_id, unit, net_price, total_price, imageproduct)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
 
             $stmt->execute([
                 $this->product_name,
                 $this->barcode,
                 $this->category_id,
-                $this->classification_id,
                 $this->unit,
                 $this->net_price,
                 $this->total_price,
@@ -150,12 +147,10 @@ class ProductManagement
                 p.barcode,
                 p.unit,
                 p.imageproduct,
-                pcl.classification_name,
                 COALESCE(SUM(i.quantity), 0) AS quantity,
                 MAX(i.expiry_date) AS expiry_date
             FROM products p
             LEFT JOIN product_categories pc ON p.category_id = pc.id
-            LEFT JOIN product_classifications pcl ON p.classification_id = pcl.id
             LEFT JOIN inventory i ON p.id = i.product_id
             GROUP BY p.id
         ");
@@ -188,14 +183,6 @@ class ProductManagement
     public function getCategories()
     {
         $stmt = $this->con->prepare("SELECT * FROM product_categories");
-        $stmt->execute();
-        return $stmt->fetchAll();
-    }
-
-    // 🔹 GET ALL CLASSIFICATIONS
-    public function getClassifications()
-    {
-        $stmt = $this->con->prepare("SELECT * FROM product_classifications");
         $stmt->execute();
         return $stmt->fetchAll();
     }
@@ -242,7 +229,7 @@ class ProductManagement
                     $stmt = $this->con->prepare("
                     UPDATE products 
                     SET product_name = ?, barcode = ?, category_id = ?, 
-                    classification_id = ?, unit = ?, net_price = ?, total_price = ?, imageproduct = ?
+                    unit = ?, net_price = ?, total_price = ?, imageproduct = ?
                     WHERE id = ?
                 ");
 
@@ -250,7 +237,6 @@ class ProductManagement
                         $this->product_name,
                         $this->barcode,
                         $this->category_id,
-                        $this->classification_id,
                         $this->unit,
                         $this->net_price,
                         $this->total_price,
@@ -261,7 +247,7 @@ class ProductManagement
                     $stmt = $this->con->prepare("
                     UPDATE products 
                     SET product_name = ?, barcode = ?, category_id = ?, 
-                    classification_id = ?, unit = ?, net_price = ?, total_price = ?
+                    unit = ?, net_price = ?, total_price = ?
                     WHERE id = ?
                 ");
 
@@ -269,7 +255,6 @@ class ProductManagement
                         $this->product_name,
                         $this->barcode,
                         $this->category_id,
-                        $this->classification_id,
                         $this->unit,
                         $this->net_price,
                         $this->total_price,

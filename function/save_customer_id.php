@@ -36,8 +36,9 @@ $table = $type === 'senior' ? 'senior_customers' : 'pwd_customers';
 try {
     $stmt = $db->prepare("INSERT INTO `$table` (customer_name, id_number, cashier_id) VALUES (?, ?, ?)");
     $stmt->execute([$name, $id_number, $cashier_id]);
+    $customerId = $db->lastInsertId();
 
-    echo json_encode(['success' => true]);
+    echo json_encode(['success' => true, 'customer_id' => $customerId]);
 } catch (PDOException $e) {
     echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
 }

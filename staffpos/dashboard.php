@@ -30,7 +30,7 @@ $user->pre_addUser();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Dashboard</title>
-
+    <?php require_once __DIR__ . "/../conn/connection_links.php"; ?>
 </head>
 
 <body>
@@ -43,7 +43,7 @@ $user->pre_addUser();
     </main>
 
     <!-- FOOTER -->
-
+    <?php include __DIR__ . "/../reusablepage/footer.php"; ?>
 
 </body>
 

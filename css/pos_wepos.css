@@ -203,6 +203,22 @@
     filter: grayscale(100%);
 }
 
+.wepos-product-card.expired {
+    opacity: 0.75;
+    pointer-events: none;
+    filter: grayscale(0%);
+    border: 2px solid #dc2626;
+    background: #fff5f5;
+}
+
+.wepos-product-card.expired .wepos-card-img {
+    background: #fee2e2;
+}
+
+.wepos-product-card.expired .wepos-card-info {
+    background: #fecaca;
+}
+
 .wepos-card-img {
     height: 110px;
     background: #fcfcfc;
@@ -241,6 +257,16 @@
 .wepos-stock-badge.low {
     background: #fef08a;
     color: #854d0e;
+}
+
+.wepos-stock-badge.expired {
+    background: #ffffff;
+    color: #fef2f2;
+    font-weight: 800;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    letter-spacing: 0.5px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    font-size: 11px;
 }
 
 .wepos-card-info {

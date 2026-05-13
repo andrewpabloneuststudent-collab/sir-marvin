@@ -7,7 +7,7 @@ use Classes\ProductManagement;
 $product = new ProductManagement($db);
 $products = $product->getAllProducts();
 $categories = $product->getCategories();
-$classifications = $product->getClassifications();
+
 
 $pmUserRole = strtolower($_SESSION['position'] ?? 'staff');
 $pmIsManager = in_array($pmUserRole, ['owner', 'admin']);
@@ -47,9 +47,7 @@ if ($product->addProduct()) {
             <h4 class="mb-0">Product Management</h4>
             <div class="d-flex gap-2">
                 <?php if ($pmIsManager): ?>
-                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#catSettingsBootstrapModal">
-                    <i class="fas fa-tags"></i> Category Settings
-                </button>
+               
                 <?php endif; ?>
                 <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
                     + Add Product
@@ -63,7 +61,6 @@ if ($product->addProduct()) {
                     <th>ID</th>
                     <th>Product</th>
                     <th>Category</th>
-                    <th>Classification</th>
                     <th>Net Price</th>
                     <th>Total Price</th>
                     <th>Stock</th>
@@ -79,7 +76,6 @@ if ($product->addProduct()) {
                         <td><?= $prod['id'] ?></td>
                         <td><?= $prod['product_name'] ?></td>
                         <td><?= $prod['category_name'] ?? 'N/A' ?></td>
-                        <td><?= $prod['classification_name'] ?? 'N/A' ?></td>
                         <td>₱ <?= number_format($prod['net_price'], 2) ?></td>
                         <td>₱ <?= number_format($prod['total_price'], 2) ?></td>
                         <td><?= $prod['quantity'] ?></td>

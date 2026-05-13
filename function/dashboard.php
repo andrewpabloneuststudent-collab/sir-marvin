@@ -27,6 +27,14 @@ class DashboardManager
         return $result['total'] ?? 0;
     }
 
+    public function getTotalSalesYear()
+    {
+        $sql = "SELECT SUM(total_amount) as total FROM transactions WHERE YEAR(created_at) = YEAR(CURDATE())";
+        $stmt = $this->db->query($sql);
+        $result = $stmt->fetch();
+        return $result['total'] ?? 0;
+    }
+
     public function getTransactionCountToday()
     {
         $sql = "SELECT COUNT(*) as total FROM transactions WHERE DATE(created_at) = CURDATE()";
@@ -108,6 +116,122 @@ class DashboardManager
             $salesTrend[(int)$row['month']] = (float)$row['total'];
         }
         return array_values($salesTrend); // Return as index 0-11 for JS
+    }
+
+    public function getTotalDiscountToday()
+    {
+        $sql = "SELECT SUM(discount_total) as total FROM transactions WHERE DATE(created_at) = CURDATE()";
+        $stmt = $this->db->query($sql);
+        $result = $stmt->fetch();
+        return $result['total'] ?? 0;
+    }
+
+    public function getTotalDiscountMonth()
+    {
+        $sql = "SELECT SUM(discount_total) as total FROM transactions WHERE MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())";
+        $stmt = $this->db->query($sql);
+        $result = $stmt->fetch();
+        return $result['total'] ?? 0;
+    }
+
+    public function getTotalVatExemptionToday()
+    {
+        $sql = "SELECT SUM(total_vat_exemption) as total FROM transactions WHERE DATE(created_at) = CURDATE()";
+        $stmt = $this->db->query($sql);
+        $result = $stmt->fetch();
+        return $result['total'] ?? 0;
+    }
+
+    public function getTotalVatExemptionMonth()
+    {
+        $sql = "SELECT SUM(total_vat_exemption) as total FROM transactions WHERE MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())";
+        $stmt = $this->db->query($sql);
+        $result = $stmt->fetch();
+        return $result['total'] ?? 0;
+    }
+
+    public function getRealRevenueToday()
+    {
+        // Real Revenue = Selling Price - Cost of Goods Sold
+        $sql = "SELECT 
+                    SUM(ti.price * ti.quantity) as total_selling,
+                    SUM(p.net_price * ti.quantity) as total_cost
+                FROM transactions t
+                JOIN transaction_items ti ON t.id = ti.transaction_id
+                JOIN products p ON ti.product_id = p.id
+                WHERE DATE(t.created_at) = CURDATE()";
+        $stmt = $this->db->query($sql);
+        $result = $stmt->fetch();
+        $selling = (float)($result['total_selling'] ?? 0);
+        $cost = (float)($result['total_cost'] ?? 0);
+        return $selling - $cost;
+    }
+
+    public function getRealRevenueMonth()
+    {
+        // Real Revenue = Selling Price - Cost of Goods Sold
+        $sql = "SELECT 
+                    SUM(ti.price * ti.quantity) as total_selling,
+                    SUM(p.net_price * ti.quantity) as total_cost
+                FROM transactions t
+                JOIN transaction_items ti ON t.id = ti.transaction_id
+                JOIN products p ON ti.product_id = p.id
+                WHERE MONTH(t.created_at) = MONTH(CURDATE()) 
+                AND YEAR(t.created_at) = YEAR(CURDATE())";
+        $stmt = $this->db->query($sql);
+        $result = $stmt->fetch();
+        $selling = (float)($result['total_selling'] ?? 0);
+        $cost = (float)($result['total_cost'] ?? 0);
+        return $selling - $cost;
+    }
+
+    public function getRealRevenueYear()
+    {
+        // Real Revenue = Selling Price - Cost of Goods Sold
+        $sql = "SELECT 
+                    SUM(ti.price * ti.quantity) as total_selling,
+                    SUM(p.net_price * ti.quantity) as total_cost
+                FROM transactions t
+                JOIN transaction_items ti ON t.id = ti.transaction_id
+                JOIN products p ON ti.product_id = p.id
+                WHERE YEAR(t.created_at) = YEAR(CURDATE())";
+        $stmt = $this->db->query($sql);
+        $result = $stmt->fetch();
+        $selling = (float)($result['total_selling'] ?? 0);
+        $cost = (float)($result['total_cost'] ?? 0);
+        return $selling - $cost;
+    }
+
+    public function getTotalTransactionsAllTime()
+    {
+        $sql = "SELECT COUNT(*) as total FROM transactions";
+        $stmt = $this->db->query($sql);
+        $result = $stmt->fetch();
+        return (int)($result['total'] ?? 0);
+    }
+
+    public function getAverageTransactionValue()
+    {
+        $sql = "SELECT AVG(total_amount) as avg_value FROM transactions";
+        $stmt = $this->db->query($sql);
+        $result = $stmt->fetch();
+        return (float)($result['avg_value'] ?? 0);
+    }
+
+    public function getTotalDiscountAllTime()
+    {
+        $sql = "SELECT COALESCE(SUM(discount_total), 0) as total_discount FROM transactions";
+        $stmt = $this->db->query($sql);
+        $result = $stmt->fetch();
+        return (float)($result['total_discount'] ?? 0);
+    }
+
+    public function getTotalVatExemptionAllTime()
+    {
+        $sql = "SELECT COALESCE(SUM(total_vat_exemption), 0) as total_vat FROM transactions";
+        $stmt = $this->db->query($sql);
+        $result = $stmt->fetch();
+        return (float)($result['total_vat'] ?? 0);
     }
 }
 

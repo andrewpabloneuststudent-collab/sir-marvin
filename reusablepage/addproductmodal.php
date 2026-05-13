@@ -8,7 +8,7 @@ $product = new ProductManagement($db);
 
 // ✅ USE CLASS FUNCTIONS
 $categories = $product->getCategories();
-$classifications = $product->getClassifications();
+
 ?>
 
 <!-- ADD PRODUCT MODAL -->
@@ -59,17 +59,7 @@ $classifications = $product->getClassifications();
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="classification_id" class="form-label">Classification <span class="text-danger">*</span></label>
-                            <select id="classification_id" name="classification_id" class="form-control" required>
-                                <option value="">Select Classification</option>
-                                <?php foreach ($classifications as $cls): ?>
-                                    <option value="<?= $cls['id'] ?>">
-                                        <?= $cls['classification_name'] ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+                        
                     </div>
 
                     <hr class="my-4">

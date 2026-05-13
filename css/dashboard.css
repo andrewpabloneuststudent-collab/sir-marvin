@@ -60,6 +60,16 @@
 .stat-icon.green { background: #f0fdf4; color: #16a34a; }
 .stat-icon.cyan  { background: #ecfeff; color: #0891b2; }
 .stat-icon.amber { background: #fffbeb; color: #d97706; }
+.stat-icon.purple { background: #faf5ff; color: #9333ea; }
+.stat-icon.orange { background: #fff7ed; color: #ea580c; }
+.stat-icon.teal  { background: #f0fdfa; color: #0d9488; }
+.stat-icon.indigo { background: #eef2ff; color: #4f46e5; }
+.stat-icon.rose  { background: #ffe4e6; color: #e11d48; }
+.stat-icon.lime  { background: #f7fee7; color: #65a30d; }
+.stat-icon.secondary { background: #f3f4f6; color: #6b7280; }
+.stat-icon.info { background: #cffafe; color: #0369a1; }
+.stat-icon.danger { background: #fee2e2; color: #dc2626; }
+.stat-icon.success { background: #dcfce7; color: #16a34a; }
 .stat-label {
   font-size: .73rem;
   font-weight: 600;

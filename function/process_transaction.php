@@ -32,6 +32,10 @@ $body       = json_decode(file_get_contents('php://input'), true);
 $items      = $body['items']       ?? [];
 $discountId = $body['discount_id'] ?? null;
 $customerName = trim($body['customer_name'] ?? 'Walk-in');
+$customerId = (int)($body['customer_id'] ?? 0) ?: null;
+$customerType = trim($body['customer_type'] ?? null);
+$discountTotal = (float)($body['discount_total'] ?? 0);
+$totalVatExemption = (float)($body['total_vat_exemption'] ?? 0);
 
 if (empty($items)) {
     echo json_encode(['success' => false, 'error' => 'Cart is empty']);
@@ -48,7 +52,10 @@ try {
         $items,
         $discountId,
         $customerName,
-        null
+        $customerId,
+        $discountTotal,
+        $totalVatExemption,
+        $customerType
     );
     echo json_encode($result);
 } catch (Throwable $e) {
